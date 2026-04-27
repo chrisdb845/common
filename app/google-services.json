@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "96558258401",
+    "project_id": "common-4c877",
+    "storage_bucket": "common-4c877.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:96558258401:android:a270aa31e613c14a62bfa0",
+        "android_client_info": {
+          "package_name": "com.christian.commonlink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0y1Ol7v5JJiaNAz-DqEVUdmMpb21wpt4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
