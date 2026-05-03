@@ -44,13 +44,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-
 import com.christian.commonlink.R
-import com.christian.commonlink.sokohub.navigation.ROUT_LOGIN
-
+import com.christian.commonlink.navigation.ROUT_HOME
+import com.christian.commonlink.navigation.ROUT_LOGIN
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
-// Brand colors
+// ── Brand colors ─────────────────────────────────────────────────
 private val DeepIndigo = Color(0xFF1A1040)
 private val RoyalPurple = Color(0xFF6B3FA0)
 private val SoftViolet = Color(0xFF9B6FD4)
@@ -61,20 +61,29 @@ private val FrostWhite = Color(0xCCFFFFFF)
 @Composable
 fun SplashScreen(navController: NavController) {
 
+    // ✅ Firebase auth instance
+    val auth = FirebaseAuth.getInstance()
+
     var isVisible by remember { mutableStateOf(false) }
 
-    // ✅ Runs once safely
+    // ✅ Check auth state and navigate accordingly
     LaunchedEffect(Unit) {
         isVisible = true
         delay(2000)
-        navController.navigate(ROUT_LOGIN) {
-            popUpTo(navController.graph.startDestinationId) {
-                inclusive = true
+        if (auth.currentUser != null) {
+            // ✅ Already logged in — go straight to Home
+            navController.navigate(ROUT_HOME) {
+                popUpTo(0) { inclusive = true }
+            }
+        } else {
+            // ✅ Not logged in — go to Login
+            navController.navigate(ROUT_LOGIN) {
+                popUpTo(0) { inclusive = true }
             }
         }
     }
 
-    // Fade-in animation for entire content
+    // Fade-in animation
     val contentAlpha by animateFloatAsState(
         targetValue = if (isVisible) 1f else 0f,
         animationSpec = tween(durationMillis = 900),
@@ -88,7 +97,7 @@ fun SplashScreen(navController: NavController) {
         label = "logoScale"
     )
 
-    // Infinite pulse animation for the glow ring behind logo
+    // Infinite pulse animation
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseAlpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,
@@ -120,7 +129,7 @@ fun SplashScreen(navController: NavController) {
             )
     ) {
 
-        // 🔵 Decorative blurred circle — top left atmosphere
+        // Decorative blurred circle — top left
         Box(
             modifier = Modifier
                 .size(220.dp)
@@ -130,7 +139,7 @@ fun SplashScreen(navController: NavController) {
                 .background(AccentGold, shape = CircleShape)
         )
 
-        // 🔵 Decorative blurred circle — bottom right atmosphere
+        // Decorative blurred circle — bottom right
         Box(
             modifier = Modifier
                 .size(260.dp)
@@ -149,8 +158,10 @@ fun SplashScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
 
-            // 🔹 Pulsing glow ring behind logo
+            // Pulsing glow ring + logo
             Box(contentAlignment = Alignment.Center) {
+
+                // Pulse ring
                 Box(
                     modifier = Modifier
                         .size(148.dp)
@@ -164,7 +175,7 @@ fun SplashScreen(navController: NavController) {
                         )
                 )
 
-                // 🔹 Frosted circle container
+                // Frosted glass circle container
                 Box(
                     modifier = Modifier
                         .size(120.dp)
@@ -180,7 +191,7 @@ fun SplashScreen(navController: NavController) {
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    // ✅ Image clipped to a perfect circle
+                    // ✅ Circular image
                     Image(
                         painter = painterResource(R.drawable.community),
                         contentDescription = "App Logo",
@@ -194,7 +205,7 @@ fun SplashScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 🔹 App name badge
+            // App name badge
             Box(
                 modifier = Modifier
                     .background(
@@ -219,7 +230,7 @@ fun SplashScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // 🔹 Title
+            // Title
             Text(
                 text = "Connect. Discover. Grow.",
                 color = PureWhite,
@@ -232,7 +243,7 @@ fun SplashScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔹 Subtitle
+            // Subtitle
             Text(
                 text = "Your community, all in one place.",
                 color = FrostWhite,
@@ -244,7 +255,7 @@ fun SplashScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // 🔹 Loader
+            // Loader
             CircularProgressIndicator(
                 modifier = Modifier.size(28.dp),
                 color = AccentGold,

@@ -1,4 +1,4 @@
-package com.christian.commonlink.ui.screens.EventsScreen
+package com.christian.commonlink.ui.screens.jobs
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -32,11 +32,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.christian.commonlink.navigation.ROUT_ADD_EVENT
-import com.christian.commonlink.ui.screens.events.Event        // ✅ Fix 1 — import Event model
-import com.christian.commonlink.ui.screens.events.EventViewModel
+import com.christian.commonlink.navigation.ROUT_ADD_JOB
 
-// ── Brand palette ────────────────────────────────────────────────
 private val DeepIndigo   = Color(0xFF1A1040)
 private val RoyalPurple  = Color(0xFF6B3FA0)
 private val SoftViolet   = Color(0xFF9B6FD4)
@@ -44,13 +41,11 @@ private val AccentGold   = Color(0xFFFFD166)
 private val CardWhite    = Color(0xFFFFFFFF)
 private val SubtitleGray = Color(0xFF888888)
 private val BgColor      = Color(0xFFF5F3FB)
+private val GreenTag     = Color(0xFF2E7D32)
+private val GreenTagBg   = Color(0xFFE8F5E9)
 
-// ── Single Event Card ────────────────────────────────────────────
 @Composable
-fun EventCard(
-    event: Event,
-    onClick: () -> Unit  // ✅ Fix 2 — removed the 's' from Units
-) {
+fun JobCard(job: Job, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -61,14 +56,14 @@ fun EventCard(
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
 
-            // Left color accent bar
+            // Left accent bar
             Box(
                 modifier = Modifier
                     .width(6.dp)
-                    .height(140.dp)
+                    .height(160.dp)
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(AccentGold, RoyalPurple)
+                            colors = listOf(Color(0xFF43A047), RoyalPurple)
                         )
                     )
             )
@@ -79,40 +74,34 @@ fun EventCard(
                     .padding(16.dp)
             ) {
 
-                // Category tag + organizer row
+                // Job type badge + posted by
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Category badge
                     Box(
                         modifier = Modifier
-                            .background(
-                                color = AccentGold,
-                                shape = RoundedCornerShape(50)
-                            )
+                            .background(GreenTagBg, shape = RoundedCornerShape(50))
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = event.category,
+                            text = job.type,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DeepIndigo
+                            color = GreenTag
                         )
                     }
-
-                    // Organizer
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Default.Person,
-                            contentDescription = "Organizer",
+                            contentDescription = "Posted by",
                             tint = SubtitleGray,
                             modifier = Modifier.size(13.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = event.organizer,
+                            text = job.postedBy,
                             fontSize = 11.sp,
                             color = SubtitleGray
                         )
@@ -121,9 +110,9 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Event title
+                // Job title
                 Text(
-                    text = event.title,
+                    text = job.title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp,
                     color = DeepIndigo,
@@ -131,11 +120,21 @@ fun EventCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
+                Spacer(modifier = Modifier.height(2.dp))
+
+                // Company name
+                Text(
+                    text = job.company,
+                    fontSize = 13.sp,
+                    color = RoyalPurple,
+                    fontWeight = FontWeight.SemiBold
+                )
+
                 Spacer(modifier = Modifier.height(6.dp))
 
                 // Description
                 Text(
-                    text = event.description,
+                    text = job.description,
                     fontSize = 13.sp,
                     color = SubtitleGray,
                     maxLines = 2,
@@ -145,50 +144,63 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Date + Time row
+                // Salary
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.DateRange,
-                        contentDescription = "Date",
-                        tint = RoyalPurple,
-                        modifier = Modifier.size(15.dp)
-                    )
+                    Text(text = "💰", fontSize = 13.sp)
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        text = "${event.date} • ${event.time}",
+                        text = job.salary,
                         fontSize = 12.sp,
-                        color = RoyalPurple,
-                        fontWeight = FontWeight.SemiBold
+                        color = GreenTag,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Location row
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = "Location",
-                        tint = SubtitleGray,
-                        modifier = Modifier.size(15.dp)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = event.location,
-                        fontSize = 12.sp,
-                        color = SubtitleGray,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Location
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = "Location",
+                            tint = SubtitleGray,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = job.location,
+                            fontSize = 12.sp,
+                            color = SubtitleGray
+                        )
+                    }
+
+                    // Deadline
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = "Deadline",
+                            tint = SubtitleGray,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = job.deadline,
+                            fontSize = 12.sp,
+                            color = SubtitleGray
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-// ── Empty state ──────────────────────────────────────────────────
 @Composable
-fun EmptyEventsState() {
+fun EmptyJobsState() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -196,47 +208,44 @@ fun EmptyEventsState() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "📅", fontSize = 56.sp)
+        Text(text = "💼", fontSize = 56.sp)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "No Events Yet",
+            text = "No Jobs Yet",
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
             color = DeepIndigo
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Be the first to add a community event!",
+            text = "Be the first to post a job opportunity!",
             fontSize = 14.sp,
             color = SubtitleGray
         )
     }
 }
 
-// ── Main Events Screen ───────────────────────────────────────────
 @Composable
-fun EventsScreen(
+fun JobsScreen(
     navController: NavController,
-    viewModel: EventViewModel = viewModel()
+    viewModel: JobViewModel = viewModel()
 ) {
-
-    val events    by viewModel.events.collectAsState()
+    val jobs      by viewModel.jobs.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error     by viewModel.errorMessage.collectAsState()
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(ROUT_ADD_EVENT) },
-                containerColor = RoyalPurple,
+                onClick = { navController.navigate(ROUT_ADD_JOB) },
+                containerColor = Color(0xFF2E7D32),
                 contentColor = Color.White,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Event")
+                Icon(Icons.Default.Add, contentDescription = "Add Job")
             }
         }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -244,12 +253,14 @@ fun EventsScreen(
                 .padding(paddingValues)
         ) {
 
-            // ── GRADIENT HEADER ──────────────────────────────────
+            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        Brush.verticalGradient(listOf(DeepIndigo, RoyalPurple))
+                        Brush.verticalGradient(
+                            listOf(Color(0xFF1B5E20), Color(0xFF2E7D32))
+                        )
                     )
                     .padding(start = 8.dp, top = 48.dp, end = 20.dp, bottom = 28.dp)
             ) {
@@ -264,15 +275,13 @@ fun EventsScreen(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Community Events",
+                            text = "Job Opportunities",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -281,7 +290,7 @@ fun EventsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Upcoming events near you",
+                            text = "Find opportunities near you",
                             fontSize = 13.sp,
                             color = Color(0xCCFFFFFF)
                         )
@@ -291,7 +300,7 @@ fun EventsScreen(
                                 .padding(horizontal = 12.dp, vertical = 5.dp)
                         ) {
                             Text(
-                                text = "${events.size} Events",
+                                text = "${jobs.size} Jobs",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = DeepIndigo
@@ -303,7 +312,6 @@ fun EventsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── BODY ─────────────────────────────────────────────
             when {
                 isLoading -> {
                     Box(
@@ -312,12 +320,12 @@ fun EventsScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(
-                                color = RoyalPurple,
+                                color = Color(0xFF2E7D32),
                                 strokeWidth = 3.dp
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Loading events...",
+                                text = "Loading jobs...",
                                 fontSize = 13.sp,
                                 color = SubtitleGray
                             )
@@ -334,7 +342,7 @@ fun EventsScreen(
                             Text(text = "⚠️", fontSize = 48.sp)
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Failed to load events",
+                                text = "Failed to load jobs",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 color = DeepIndigo
@@ -349,9 +357,7 @@ fun EventsScreen(
                     }
                 }
 
-                events.isEmpty() -> {
-                    EmptyEventsState()
-                }
+                jobs.isEmpty() -> EmptyJobsState()
 
                 else -> {
                     LazyColumn(
@@ -361,18 +367,13 @@ fun EventsScreen(
                         verticalArrangement = Arrangement.spacedBy(14.dp),
                         contentPadding = PaddingValues(bottom = 80.dp)
                     ) {
-                        items(events) { event ->
+                        items(jobs) { job ->
                             AnimatedVisibility(
                                 visible = true,
                                 enter = fadeIn() + slideInVertically(),
                                 exit = fadeOut()
                             ) {
-                                EventCard(
-                                    event = event,
-                                    onClick = {
-                                        // Navigate to event detail screen later
-                                    }
-                                )
+                                JobCard(job = job, onClick = {})
                             }
                         }
                     }
@@ -384,40 +385,7 @@ fun EventsScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun EventsScreenPreview() {
-    // ✅ Mock data so preview works without ViewModel
-    val mockEvents = listOf(
-        Event(
-            id = "1",
-            title = "Community Clean-Up",
-            description = "Join us to clean up Westlands Park",
-            date = "Saturday, May 10 2026",
-            time = "8:00 AM",
-            location = "Westlands Park, Nairobi",
-            category = "EVENT",
-            organizer = "CommonLink Team"
-        ),
-        Event(
-            id = "2",
-            title = "Job Fair 2026",
-            description = "Meet top employers in your area",
-            date = "Sunday, May 11 2026",
-            time = "10:00 AM",
-            location = "KICC, Nairobi",
-            category = "EVENT",
-            organizer = "Nairobi Chamber"
-        )
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F3FB))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        mockEvents.forEach { event ->
-            EventCard(event = event, onClick = {})
-        }
-    }
+fun JobsScreenPreview() {
+    JobsScreen(rememberNavController())
 }
+

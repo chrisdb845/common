@@ -1,6 +1,7 @@
 package com.christian.commonlink.ui.screens.home
 
 import androidx.compose.foundation.Image
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -31,17 +32,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.christian.commonlink.R
-import com.christian.commonlink.sokohub.navigation.ROUT_ADD_EVENT
-import com.christian.commonlink.sokohub.navigation.ROUT_NOTICE_BOARD
-import com.christian.commonlink.sokohub.navigation.ROUT_NOTIFICATIONS
-import com.christian.commonlink.sokohub.navigation.ROUT_POST_DETAIL
-import com.christian.commonlink.sokohub.navigation.ROUT_POST_NOTICE
-import com.christian.commonlink.sokohub.navigation.ROUT_PROFILE
-import com.christian.commonlink.sokohub.navigation.ROUT_SEE_ALL
-import com.christian.commonlink.sokohub.navigation.ROUT_VOLUNTEER
-import com.christian.commonlink.sokohub.navigation.ROUT_EVENTS
-import com.christian.commonlink.sokohub.navigation.ROUT_JOBS
-import com.christian.commonlink.sokohub.navigation.ROUT_SERVICES
+import com.christian.commonlink.navigation.ROUT_EVENTS
+import com.christian.commonlink.navigation.ROUT_JOBS
+import com.christian.commonlink.navigation.ROUT_ADD_EVENT
+import com.christian.commonlink.navigation.ROUT_SERVICES
+import com.christian.commonlink.navigation.ROUT_NOTICE_BOARD
+import com.christian.commonlink.navigation.ROUT_NOTIFICATIONS
+import com.christian.commonlink.navigation.ROUT_PROFILE
+import com.christian.commonlink.navigation.ROUT_SEE_ALL
+import com.christian.commonlink.navigation.ROUT_POST_DETAIL
+import com.christian.commonlink.navigation.ROUT_POST_NOTICE
+import com.christian.commonlink.navigation.ROUT_VOLUNTEER
+
 
 // ── Brand palette ───────────────────────────────────────────────
 private val DeepIndigo   = Color(0xFF1A1040)
@@ -83,15 +85,21 @@ fun PostCard(
     ) {
         Column {
             Box {
-                Image(
-                    painter = painterResource(image),
-                    contentDescription = title,
+                androidx.compose.foundation.layout.Box(
                     modifier = Modifier
                         .height(150.dp)
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
-                    contentScale = ContentScale.Crop
-                )
+                ) {
+                    androidx.compose.foundation.Image(
+                        painter = painterResource(image),
+                        contentDescription = title,
+                        modifier = Modifier
+                            .height(150.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -150,7 +158,6 @@ fun PostCard(
 fun StatItem(value: String, label: String, isLoading: Boolean) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (isLoading) {
-            // Shows a small shimmer placeholder while loading
             Box(
                 modifier = Modifier
                     .width(40.dp)
@@ -179,10 +186,8 @@ fun StatItem(value: String, label: String, isLoading: Boolean) {
 @Composable
 fun Home(
     navcontroller: NavController,
-    viewModel: HomeViewModel = viewModel()   // ✅ ViewModel injected
+    viewModel: HomeViewModel = viewModel()
 ) {
-
-    // ✅ Observing live counts from ViewModel
     val membersCount by viewModel.membersCount.collectAsState()
     val eventsCount  by viewModel.eventsCount.collectAsState()
     val jobsCount    by viewModel.jobsCount.collectAsState()
@@ -191,7 +196,6 @@ fun Home(
     var search by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("All") }
 
-    // ✅ Inside composable — routes in scope
     val quickActions = listOf(
         QuickAction("📣", "Post\nNotice", ROUT_POST_NOTICE),
         QuickAction("🗓️", "Add\nEvent",   ROUT_ADD_EVENT),
@@ -210,24 +214,17 @@ fun Home(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(listOf(DeepIndigo, RoyalPurple))
-                )
+                .background(Brush.verticalGradient(listOf(DeepIndigo, RoyalPurple)))
                 .padding(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 28.dp)
         ) {
             Column {
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(
-                            text = "Hello 👋",
-                            fontSize = 13.sp,
-                            color = Color(0xCCFFFFFF)
-                        )
+                        Text(text = "Hello 👋", fontSize = 13.sp, color = Color(0xCCFFFFFF))
                         Text(
                             text = "Community Hub",
                             fontSize = 24.sp,
@@ -235,19 +232,10 @@ fun Home(
                             color = Color.White
                         )
                     }
-
                     Row(verticalAlignment = Alignment.CenterVertically) {
-
-                        // 🔔 Notification bell
                         Box {
-                            IconButton(onClick = {
-                                navcontroller.navigate(ROUT_NOTIFICATIONS)
-                            }) {
-                                Icon(
-                                    Icons.Default.Notifications,
-                                    contentDescription = "Notifications",
-                                    tint = Color.White
-                                )
+                            IconButton(onClick = { navcontroller.navigate(ROUT_NOTIFICATIONS) }) {
+                                Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = Color.White)
                             }
                             Box(
                                 modifier = Modifier
@@ -256,10 +244,7 @@ fun Home(
                                     .align(Alignment.TopEnd)
                             )
                         }
-
                         Spacer(modifier = Modifier.width(6.dp))
-
-                        // 👤 Profile avatar
                         Box(
                             modifier = Modifier
                                 .size(38.dp)
@@ -268,19 +253,13 @@ fun Home(
                                 .clickable { navcontroller.navigate(ROUT_PROFILE) },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                Icons.Default.Person,
-                                contentDescription = "Profile",
-                                tint = Color.White,
-                                modifier = Modifier.size(22.dp)
-                            )
+                            Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color.White, modifier = Modifier.size(22.dp))
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // ✅ Stats row — now reads from ViewModel
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -289,43 +268,20 @@ fun Home(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatItem(membersCount, "Members", isLoading)
-                    Divider(
-                        modifier = Modifier
-                            .height(32.dp)
-                            .width(1.dp),
-                        color = Color(0x44FFFFFF)
-                    )
+                    Divider(modifier = Modifier.height(32.dp).width(1.dp), color = Color(0x44FFFFFF))
                     StatItem(eventsCount, "Events", isLoading)
-                    Divider(
-                        modifier = Modifier
-                            .height(32.dp)
-                            .width(1.dp),
-                        color = Color(0x44FFFFFF)
-                    )
+                    Divider(modifier = Modifier.height(32.dp).width(1.dp), color = Color(0x44FFFFFF))
                     StatItem(jobsCount, "Jobs", isLoading)
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Search bar
                 TextField(
                     value = search,
                     onValueChange = { search = it },
                     modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = SubtitleGray
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            "Search events, jobs, services...",
-                            fontSize = 13.sp,
-                            color = SubtitleGray
-                        )
-                    },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = SubtitleGray) },
+                    placeholder = { Text("Search events, jobs, services...", fontSize = 13.sp, color = SubtitleGray) },
                     shape = RoundedCornerShape(14.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.White,
@@ -340,8 +296,8 @@ fun Home(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ── CATEGORY CHIPS ──────────────────────────────────────
-        // ── CATEGORY CHIPS ──────────────────────────────────────────
+        // ── CATEGORY CHIPS ───────────────────────────────────────
+        // ✅ Only ONE forEach loop, inside the Row
         Row(
             modifier = Modifier
                 .horizontalScroll(rememberScrollState())
@@ -358,7 +314,6 @@ fun Home(
                         )
                         .clickable {
                             selectedCategory = category.label
-                            // ✅ Navigate to the right screen when chip is tapped
                             when (category.label) {
                                 "Events"   -> navcontroller.navigate(ROUT_EVENTS)
                                 "Jobs"     -> navcontroller.navigate(ROUT_JOBS)
@@ -378,86 +333,40 @@ fun Home(
                 }
             }
         }
-            categories.forEach { category ->
-                val isSelected = selectedCategory == category.label
-                Box(
-                    modifier = Modifier
-                        .padding(end = 10.dp)
-                        .background(
-                            color = if (isSelected) RoyalPurple else Color.White,
-                            shape = RoundedCornerShape(50)
-                        )
-                        .clickable { selectedCategory = category.label }
-                        .padding(horizontal = 16.dp, vertical = 9.dp)
-                ) {
-                    Text(
-                        text = "${category.emoji}  ${category.label}",
-                        fontSize = 13.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (isSelected) Color.White else DeepIndigo
-                    )
-                }
-            }
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // ── NOTICE BOARD BANNER ─────────────────────────────────
+        // ── NOTICE BOARD BANNER ──────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .clickable { navcontroller.navigate(ROUT_NOTICE_BOARD) }
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(AccentGold, Color(0xFFFFB830))
-                    )
-                )
+                .background(Brush.horizontalGradient(colors = listOf(AccentGold, Color(0xFFFFB830))))
                 .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "📌", fontSize = 26.sp)
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(
-                        text = "Notice Board",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = DeepIndigo
-                    )
-                    Text(
-                        text = "3 new announcements from your area",
-                        fontSize = 12.sp,
-                        color = Color(0xFF4A3000)
-                    )
+                    Text(text = "Notice Board", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DeepIndigo)
+                    Text(text = "3 new announcements from your area", fontSize = 12.sp, color = Color(0xFF4A3000))
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "›",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = DeepIndigo
-                )
+                Text(text = "›", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = DeepIndigo)
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // ── SECTION TITLE + SEE ALL ─────────────────────────────
+        // ── SECTION TITLE + SEE ALL ──────────────────────────────
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Trending in Your Community",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = DeepIndigo
-            )
+            Text(text = "Trending in Your Community", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DeepIndigo)
             Text(
                 text = "See all",
                 fontSize = 13.sp,
@@ -469,7 +378,7 @@ fun Home(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ── HORIZONTAL POST CARDS ───────────────────────────────
+        // ── HORIZONTAL POST CARDS ────────────────────────────────
         Row(
             modifier = Modifier
                 .horizontalScroll(rememberScrollState())
@@ -503,7 +412,7 @@ fun Home(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // ── QUICK ACTIONS ───────────────────────────────────────
+        // ── QUICK ACTIONS ────────────────────────────────────────
         Text(
             text = "Quick Actions",
             fontSize = 18.sp,
@@ -514,11 +423,8 @@ fun Home(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // ✅ Row wraps forEach so weight(1f) has valid scope
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             quickActions.forEachIndexed { index, action ->
@@ -547,8 +453,9 @@ fun Home(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-    }
 
+    } // ✅ Closes Column
+} // ✅ Closes Home()
 
 @Preview(showBackground = true)
 @Composable

@@ -1,4 +1,4 @@
-package com.christian.commonlink.ui.screens.EventsScreen
+package com.christian.commonlink.ui.screens.services
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -14,9 +14,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,25 +32,19 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.christian.commonlink.navigation.ROUT_ADD_EVENT
-import com.christian.commonlink.ui.screens.events.Event        // ✅ Fix 1 — import Event model
-import com.christian.commonlink.ui.screens.events.EventViewModel
+import com.christian.commonlink.navigation.ROUT_ADD_SERVICE
 
-// ── Brand palette ────────────────────────────────────────────────
 private val DeepIndigo   = Color(0xFF1A1040)
 private val RoyalPurple  = Color(0xFF6B3FA0)
-private val SoftViolet   = Color(0xFF9B6FD4)
 private val AccentGold   = Color(0xFFFFD166)
 private val CardWhite    = Color(0xFFFFFFFF)
 private val SubtitleGray = Color(0xFF888888)
 private val BgColor      = Color(0xFFF5F3FB)
+private val TealColor    = Color(0xFF00695C)
+private val TealBg       = Color(0xFFE0F2F1)
 
-// ── Single Event Card ────────────────────────────────────────────
 @Composable
-fun EventCard(
-    event: Event,
-    onClick: () -> Unit  // ✅ Fix 2 — removed the 's' from Units
-) {
+fun ServiceCard(service: Service, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -61,14 +55,14 @@ fun EventCard(
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
 
-            // Left color accent bar
+            // Left accent bar
             Box(
                 modifier = Modifier
                     .width(6.dp)
-                    .height(140.dp)
+                    .height(160.dp)
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(AccentGold, RoyalPurple)
+                            colors = listOf(TealColor, RoyalPurple)
                         )
                     )
             )
@@ -79,7 +73,7 @@ fun EventCard(
                     .padding(16.dp)
             ) {
 
-                // Category tag + organizer row
+                // Category badge + rating row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -88,42 +82,35 @@ fun EventCard(
                     // Category badge
                     Box(
                         modifier = Modifier
-                            .background(
-                                color = AccentGold,
-                                shape = RoundedCornerShape(50)
-                            )
+                            .background(TealBg, shape = RoundedCornerShape(50))
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = event.category,
+                            text = service.category,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DeepIndigo
+                            color = TealColor
                         )
                     }
 
-                    // Organizer
+                    // Star rating
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = "Organizer",
-                            tint = SubtitleGray,
-                            modifier = Modifier.size(13.dp)
-                        )
+                        Text(text = "⭐", fontSize = 12.sp)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = event.organizer,
-                            fontSize = 11.sp,
-                            color = SubtitleGray
+                            text = service.rating,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DeepIndigo
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Event title
+                // Service title
                 Text(
-                    text = event.title,
+                    text = service.title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp,
                     color = DeepIndigo,
@@ -131,11 +118,30 @@ fun EventCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
+                Spacer(modifier = Modifier.height(2.dp))
+
+                // Provider name
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = "Provider",
+                        tint = TealColor,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = service.provider,
+                        fontSize = 13.sp,
+                        color = TealColor,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(6.dp))
 
                 // Description
                 Text(
-                    text = event.description,
+                    text = service.description,
                     fontSize = 13.sp,
                     color = SubtitleGray,
                     maxLines = 2,
@@ -145,50 +151,50 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Date + Time row
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.DateRange,
-                        contentDescription = "Date",
-                        tint = RoyalPurple,
-                        modifier = Modifier.size(15.dp)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = "${event.date} • ${event.time}",
-                        fontSize = 12.sp,
-                        color = RoyalPurple,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Location
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = "Location",
+                            tint = SubtitleGray,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = service.location,
+                            fontSize = 12.sp,
+                            color = SubtitleGray
+                        )
+                    }
 
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Location row
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = "Location",
-                        tint = SubtitleGray,
-                        modifier = Modifier.size(15.dp)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = event.location,
-                        fontSize = 12.sp,
-                        color = SubtitleGray,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    // Phone
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Phone,
+                            contentDescription = "Phone",
+                            tint = TealColor,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = service.phone,
+                            fontSize = 12.sp,
+                            color = TealColor,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-// ── Empty state ──────────────────────────────────────────────────
 @Composable
-fun EmptyEventsState() {
+fun EmptyServicesState() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -196,47 +202,44 @@ fun EmptyEventsState() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "📅", fontSize = 56.sp)
+        Text(text = "🔧", fontSize = 56.sp)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "No Events Yet",
+            text = "No Services Yet",
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
             color = DeepIndigo
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Be the first to add a community event!",
+            text = "Be the first to list a service!",
             fontSize = 14.sp,
             color = SubtitleGray
         )
     }
 }
 
-// ── Main Events Screen ───────────────────────────────────────────
 @Composable
-fun EventsScreen(
+fun ServicesScreen(
     navController: NavController,
-    viewModel: EventViewModel = viewModel()
+    viewModel: ServiceViewModel = viewModel()
 ) {
-
-    val events    by viewModel.events.collectAsState()
+    val services  by viewModel.services.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error     by viewModel.errorMessage.collectAsState()
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(ROUT_ADD_EVENT) },
-                containerColor = RoyalPurple,
+                onClick = { navController.navigate(ROUT_ADD_SERVICE) },
+                containerColor = TealColor,
                 contentColor = Color.White,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Event")
+                Icon(Icons.Default.Add, contentDescription = "Add Service")
             }
         }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -244,12 +247,14 @@ fun EventsScreen(
                 .padding(paddingValues)
         ) {
 
-            // ── GRADIENT HEADER ──────────────────────────────────
+            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        Brush.verticalGradient(listOf(DeepIndigo, RoyalPurple))
+                        Brush.verticalGradient(
+                            listOf(Color(0xFF004D40), TealColor)
+                        )
                     )
                     .padding(start = 8.dp, top = 48.dp, end = 20.dp, bottom = 28.dp)
             ) {
@@ -264,15 +269,13 @@ fun EventsScreen(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Community Events",
+                            text = "Local Services",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -281,7 +284,7 @@ fun EventsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Upcoming events near you",
+                            text = "Trusted providers near you",
                             fontSize = 13.sp,
                             color = Color(0xCCFFFFFF)
                         )
@@ -291,7 +294,7 @@ fun EventsScreen(
                                 .padding(horizontal = 12.dp, vertical = 5.dp)
                         ) {
                             Text(
-                                text = "${events.size} Events",
+                                text = "${services.size} Services",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = DeepIndigo
@@ -303,7 +306,6 @@ fun EventsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── BODY ─────────────────────────────────────────────
             when {
                 isLoading -> {
                     Box(
@@ -312,12 +314,12 @@ fun EventsScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(
-                                color = RoyalPurple,
+                                color = TealColor,
                                 strokeWidth = 3.dp
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Loading events...",
+                                text = "Loading services...",
                                 fontSize = 13.sp,
                                 color = SubtitleGray
                             )
@@ -334,7 +336,7 @@ fun EventsScreen(
                             Text(text = "⚠️", fontSize = 48.sp)
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Failed to load events",
+                                text = "Failed to load services",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 color = DeepIndigo
@@ -349,9 +351,7 @@ fun EventsScreen(
                     }
                 }
 
-                events.isEmpty() -> {
-                    EmptyEventsState()
-                }
+                services.isEmpty() -> EmptyServicesState()
 
                 else -> {
                     LazyColumn(
@@ -361,18 +361,13 @@ fun EventsScreen(
                         verticalArrangement = Arrangement.spacedBy(14.dp),
                         contentPadding = PaddingValues(bottom = 80.dp)
                     ) {
-                        items(events) { event ->
+                        items(services) { service ->
                             AnimatedVisibility(
                                 visible = true,
                                 enter = fadeIn() + slideInVertically(),
                                 exit = fadeOut()
                             ) {
-                                EventCard(
-                                    event = event,
-                                    onClick = {
-                                        // Navigate to event detail screen later
-                                    }
-                                )
+                                ServiceCard(service = service, onClick = {})
                             }
                         }
                     }
@@ -384,40 +379,6 @@ fun EventsScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun EventsScreenPreview() {
-    // ✅ Mock data so preview works without ViewModel
-    val mockEvents = listOf(
-        Event(
-            id = "1",
-            title = "Community Clean-Up",
-            description = "Join us to clean up Westlands Park",
-            date = "Saturday, May 10 2026",
-            time = "8:00 AM",
-            location = "Westlands Park, Nairobi",
-            category = "EVENT",
-            organizer = "CommonLink Team"
-        ),
-        Event(
-            id = "2",
-            title = "Job Fair 2026",
-            description = "Meet top employers in your area",
-            date = "Sunday, May 11 2026",
-            time = "10:00 AM",
-            location = "KICC, Nairobi",
-            category = "EVENT",
-            organizer = "Nairobi Chamber"
-        )
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F3FB))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        mockEvents.forEach { event ->
-            EventCard(event = event, onClick = {})
-        }
-    }
+fun ServicesScreenPreview() {
+    ServicesScreen(rememberNavController())
 }

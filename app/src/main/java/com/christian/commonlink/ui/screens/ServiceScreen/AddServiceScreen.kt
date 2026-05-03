@@ -1,18 +1,17 @@
-package com.christian.commonlink.ui.screens.AddEventsScreen
+package com.christian.commonlink.ui.screens.ServiceScreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,21 +26,17 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.christian.commonlink.ui.screens.events.Event
-import com.christian.commonlink.ui.screens.events.EventViewModel
+import com.christian.commonlink.ui.screens.services.Service
+import com.christian.commonlink.ui.screens.services.ServiceViewModel
 
-// ── Brand palette ────────────────────────────────────────────────
 private val DeepIndigo   = Color(0xFF1A1040)
-private val RoyalPurple  = Color(0xFF6B3FA0)
-private val SoftViolet   = Color(0xFF9B6FD4)
-private val AccentGold   = Color(0xFFFFD166)
 private val BgColor      = Color(0xFFF5F3FB)
 private val SubtitleGray = Color(0xFF888888)
 private val ErrorRed     = Color(0xFFE53935)
+private val TealColor    = Color(0xFF00695C)
 
-// ── Reusable styled text field ───────────────────────────────────
 @Composable
-fun EventTextField(
+fun ServiceTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -63,11 +58,7 @@ fun EventTextField(
             value = value,
             onValueChange = onValueChange,
             placeholder = {
-                Text(
-                    text = placeholder,
-                    fontSize = 13.sp,
-                    color = SubtitleGray
-                )
+                Text(text = placeholder, fontSize = 13.sp, color = SubtitleGray)
             },
             leadingIcon = leadingIcon,
             singleLine = singleLine,
@@ -79,7 +70,7 @@ fun EventTextField(
                 .border(
                     width = 1.5.dp,
                     color = if (isError) ErrorRed
-                    else if (value.isNotEmpty()) RoyalPurple
+                    else if (value.isNotEmpty()) TealColor
                     else Color(0xFFE0E0E0),
                     shape = RoundedCornerShape(14.dp)
                 ),
@@ -103,9 +94,8 @@ fun EventTextField(
     }
 }
 
-// ── Category selector chip ───────────────────────────────────────
 @Composable
-fun CategoryChip(
+fun ServiceCategoryChip(
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -115,12 +105,12 @@ fun CategoryChip(
             .clip(RoundedCornerShape(50))
             .clickable { onClick() }
             .background(
-                color = if (isSelected) RoyalPurple else Color.White,
+                color = if (isSelected) TealColor else Color.White,
                 shape = RoundedCornerShape(50)
             )
             .border(
                 width = 1.5.dp,
-                color = if (isSelected) RoyalPurple else Color(0xFFE0E0E0),
+                color = if (isSelected) TealColor else Color(0xFFE0E0E0),
                 shape = RoundedCornerShape(50)
             )
             .padding(horizontal = 16.dp, vertical = 9.dp)
@@ -134,50 +124,47 @@ fun CategoryChip(
     }
 }
 
-// ── Main Add Event Screen ────────────────────────────────────────
 @Composable
-fun AddEventScreen(
+fun AddServiceScreen(
     navController: NavController,
-    viewModel: EventViewModel = viewModel()
+    viewModel: ServiceViewModel = viewModel()
 ) {
-
-    // ── Form fields ──────────────────────────────────────────────
     var title       by remember { mutableStateOf("") }
+    var provider    by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var date        by remember { mutableStateOf("") }
-    var time        by remember { mutableStateOf("") }
     var location    by remember { mutableStateOf("") }
-    var organizer   by remember { mutableStateOf("") }
-    var category    by remember { mutableStateOf("EVENT") }
+    var phone       by remember { mutableStateOf("") }
+    var rating      by remember { mutableStateOf("") }
+    var category    by remember { mutableStateOf("Plumbing") }
 
-    // ── Validation error states ──────────────────────────────────
     var titleError       by remember { mutableStateOf(false) }
+    var providerError    by remember { mutableStateOf(false) }
     var descriptionError by remember { mutableStateOf(false) }
-    var dateError        by remember { mutableStateOf(false) }
-    var timeError        by remember { mutableStateOf(false) }
     var locationError    by remember { mutableStateOf(false) }
-    var organizerError   by remember { mutableStateOf(false) }
+    var phoneError       by remember { mutableStateOf(false) }
+    var ratingError      by remember { mutableStateOf(false) }
 
-    // ── Success dialog state ─────────────────────────────────────
     var showSuccessDialog by remember { mutableStateOf(false) }
 
-    // ── Category options ─────────────────────────────────────────
-    val categoryOptions = listOf("EVENT", "JOBS", "SERVICE", "NEWS", "HEALTH")
+    val serviceCategories = listOf(
+        "Plumbing", "Electric", "Cleaning",
+        "Carpentry", "Painting", "Security"
+    )
 
-    // ── Success dialog ───────────────────────────────────────────
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { },
             containerColor = Color.White,
             shape = RoundedCornerShape(20.dp),
             title = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally,
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "🎉", fontSize = 48.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Event Posted!",
+                        text = "Service Listed!",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = DeepIndigo
@@ -186,7 +173,7 @@ fun AddEventScreen(
             },
             text = {
                 Text(
-                    text = "Your event has been successfully added to the community board.",
+                    text = "Your service has been successfully listed on the community board.",
                     fontSize = 14.sp,
                     color = SubtitleGray
                 )
@@ -197,11 +184,11 @@ fun AddEventScreen(
                         showSuccessDialog = false
                         navController.popBackStack()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = RoyalPurple),
+                    colors = ButtonDefaults.buttonColors(containerColor = TealColor),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Back to Events", color = Color.White)
+                    Text("Back to Services", color = Color.White)
                 }
             }
         )
@@ -213,12 +200,14 @@ fun AddEventScreen(
             .background(BgColor)
     ) {
 
-        // ── GRADIENT HEADER ──────────────────────────────────────
+        // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.verticalGradient(listOf(DeepIndigo, RoyalPurple))
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF004D40), TealColor)
+                    )
                 )
                 .padding(start = 8.dp, top = 48.dp, end = 20.dp, bottom = 28.dp)
         ) {
@@ -233,24 +222,22 @@ fun AddEventScreen(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Add New Event",
+                        text = "List a Service",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }
-
                 Spacer(modifier = Modifier.height(6.dp))
-
                 Text(
-                    text = "  Fill in the details to post your event",
+                    text = "  Fill in your service details below",
                     fontSize = 13.sp,
                     color = Color(0xCCFFFFFF)
                 )
             }
         }
 
-        // ── FORM BODY ────────────────────────────────────────────
+        // Form
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -259,112 +246,88 @@ fun AddEventScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
-            // ── Event Title ──────────────────────────────────────
-            EventTextField(
+            ServiceTextField(
                 value = title,
-                onValueChange = {
-                    title = it
-                    titleError = false
-                },
-                label = "Event Title *",
-                placeholder = "e.g. Community Clean-Up",
+                onValueChange = { title = it; titleError = false },
+                label = "Service Title *",
+                placeholder = "e.g. Plumbing Services",
                 isError = titleError
             )
 
-            // ── Description ──────────────────────────────────────
-            EventTextField(
-                value = description,
-                onValueChange = {
-                    description = it
-                    descriptionError = false
-                },
-                label = "Description *",
-                placeholder = "Describe your event...",
-                isError = descriptionError,
-                singleLine = false,
-                maxLines = 4
-            )
-
-            // ── Date ─────────────────────────────────────────────
-            EventTextField(
-                value = date,
-                onValueChange = {
-                    date = it
-                    dateError = false
-                },
-                label = "Date *",
-                placeholder = "e.g. Saturday, May 10 2026",
-                isError = dateError,
+            ServiceTextField(
+                value = provider,
+                onValueChange = { provider = it; providerError = false },
+                label = "Your Name *",
+                placeholder = "e.g. John Kamau",
+                isError = providerError,
                 leadingIcon = {
                     Icon(
-                        Icons.Default.DateRange,
-                        contentDescription = "Date",
-                        tint = if (dateError) ErrorRed else RoyalPurple,
+                        Icons.Default.Person,
+                        contentDescription = "Provider",
+                        tint = if (providerError) ErrorRed else TealColor,
                         modifier = Modifier.size(20.dp)
                     )
                 }
             )
 
-            // ── Time ─────────────────────────────────────────────
-            EventTextField(
-                value = time,
-                onValueChange = {
-                    time = it
-                    timeError = false
-                },
-                label = "Time *",
-                placeholder = "e.g. 8:00 AM",
-                isError = timeError,
+            ServiceTextField(
+                value = description,
+                onValueChange = { description = it; descriptionError = false },
+                label = "Description *",
+                placeholder = "Describe your service...",
+                isError = descriptionError,
+                singleLine = false,
+                maxLines = 4
+            )
+
+            ServiceTextField(
+                value = location,
+                onValueChange = { location = it; locationError = false },
+                label = "Location *",
+                placeholder = "e.g. Nairobi Wide",
+                isError = locationError,
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = "Location",
+                        tint = if (locationError) ErrorRed else TealColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            )
+
+            ServiceTextField(
+                value = phone,
+                onValueChange = { phone = it; phoneError = false },
+                label = "Phone Number *",
+                placeholder = "e.g. 0712345678",
+                isError = phoneError,
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Phone,
+                        contentDescription = "Phone",
+                        tint = if (phoneError) ErrorRed else TealColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            )
+
+            ServiceTextField(
+                value = rating,
+                onValueChange = { rating = it; ratingError = false },
+                label = "Your Rating (1.0 - 5.0) *",
+                placeholder = "e.g. 4.8",
+                isError = ratingError,
                 leadingIcon = {
                     Text(
-                        text = "⏰",
+                        text = "⭐",
                         fontSize = 18.sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
                 }
             )
 
-            // ── Location ─────────────────────────────────────────
-            EventTextField(
-                value = location,
-                onValueChange = {
-                    location = it
-                    locationError = false
-                },
-                label = "Location *",
-                placeholder = "e.g. Westlands Park, Nairobi",
-                isError = locationError,
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = "Location",
-                        tint = if (locationError) ErrorRed else RoyalPurple,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            )
-
-            // ── Organizer ────────────────────────────────────────
-            EventTextField(
-                value = organizer,
-                onValueChange = {
-                    organizer = it
-                    organizerError = false
-                },
-                label = "Organizer *",
-                placeholder = "e.g. CommonLink Team",
-                isError = organizerError,
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "Organizer",
-                        tint = if (organizerError) ErrorRed else RoyalPurple,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            )
-
-            // ── Category selector ────────────────────────────────
+            // Category chips
             Column {
                 Text(
                     text = "Category",
@@ -374,13 +337,26 @@ fun AddEventScreen(
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
                 Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    serviceCategories.take(3).forEach { cat ->
+                        ServiceCategoryChip(
+                            label = cat,
+                            isSelected = category == cat,
+                            onClick = { category = cat }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    categoryOptions.forEach { option ->
-                        CategoryChip(
-                            label = option,
-                            isSelected = category == option,
-                            onClick = { category = option }
+                    serviceCategories.drop(3).forEach { cat ->
+                        ServiceCategoryChip(
+                            label = cat,
+                            isSelected = category == cat,
+                            onClick = { category = cat }
                         )
                     }
                 }
@@ -388,44 +364,42 @@ fun AddEventScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ── Submit button ────────────────────────────────────
+            // Submit button
             Button(
                 onClick = {
-                    // Validate all fields
                     titleError       = title.isBlank()
+                    providerError    = provider.isBlank()
                     descriptionError = description.isBlank()
-                    dateError        = date.isBlank()
-                    timeError        = time.isBlank()
                     locationError    = location.isBlank()
-                    organizerError   = organizer.isBlank()
+                    phoneError       = phone.isBlank()
+                    ratingError      = rating.isBlank()
 
-                    // If all valid — save to Firebase
-                    val allValid = !titleError && !descriptionError &&
-                            !dateError  && !timeError &&
-                            !locationError && !organizerError
+                    val allValid = !titleError && !providerError &&
+                            !descriptionError && !locationError &&
+                            !phoneError && !ratingError
 
                     if (allValid) {
-                        val newEvent = Event(
+                        val newService = Service(
                             title = title,
+                            provider = provider,
                             description = description,
-                            date = date,
-                            time = time,
                             location = location,
-                            organizer = organizer,
+                            phone = phone,
+                            rating = rating,
                             category = category
                         )
-                        viewModel.addEvent(newEvent)  // ✅ saves to Firebase
+                        viewModel.addService(newService)
                         showSuccessDialog = true
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = RoyalPurple),
+                colors = ButtonDefaults.buttonColors(containerColor = TealColor),
                 shape = RoundedCornerShape(14.dp)
             ) {
                 Text(
-                    text = "Post Event 📣",
+                    text = "List Service 🔧",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -439,6 +413,6 @@ fun AddEventScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun AddEventScreenPreview() {
-    AddEventScreen(rememberNavController())
+fun AddServiceScreenPreview() {
+    AddServiceScreen(rememberNavController())
 }

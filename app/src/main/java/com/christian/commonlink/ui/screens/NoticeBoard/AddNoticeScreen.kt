@@ -1,17 +1,15 @@
-package com.christian.commonlink.ui.screens.AddEventsScreen
+package com.christian.commonlink.ui.screens.NoticeBoard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,21 +25,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.christian.commonlink.ui.screens.events.Event
-import com.christian.commonlink.ui.screens.events.EventViewModel
+import com.christian.commonlink.ui.screens.noticeboard.Notice
+import com.christian.commonlink.ui.screens.noticeboard.NoticeViewModel
 
-// ── Brand palette ────────────────────────────────────────────────
 private val DeepIndigo   = Color(0xFF1A1040)
 private val RoyalPurple  = Color(0xFF6B3FA0)
-private val SoftViolet   = Color(0xFF9B6FD4)
-private val AccentGold   = Color(0xFFFFD166)
 private val BgColor      = Color(0xFFF5F3FB)
 private val SubtitleGray = Color(0xFF888888)
 private val ErrorRed     = Color(0xFFE53935)
+private val UrgentRed    = Color(0xFFB71C1C)
 
-// ── Reusable styled text field ───────────────────────────────────
 @Composable
-fun EventTextField(
+fun NoticeTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -63,11 +58,7 @@ fun EventTextField(
             value = value,
             onValueChange = onValueChange,
             placeholder = {
-                Text(
-                    text = placeholder,
-                    fontSize = 13.sp,
-                    color = SubtitleGray
-                )
+                Text(text = placeholder, fontSize = 13.sp, color = SubtitleGray)
             },
             leadingIcon = leadingIcon,
             singleLine = singleLine,
@@ -103,9 +94,8 @@ fun EventTextField(
     }
 }
 
-// ── Category selector chip ───────────────────────────────────────
 @Composable
-fun CategoryChip(
+fun NoticeCategoryChip(
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -134,50 +124,44 @@ fun CategoryChip(
     }
 }
 
-// ── Main Add Event Screen ────────────────────────────────────────
 @Composable
-fun AddEventScreen(
+fun AddNoticeScreen(
     navController: NavController,
-    viewModel: EventViewModel = viewModel()
+    viewModel: NoticeViewModel = viewModel()
 ) {
+    var title        by remember { mutableStateOf("") }
+    var description  by remember { mutableStateOf("") }
+    var postedBy     by remember { mutableStateOf("") }
+    var date         by remember { mutableStateOf("") }
+    var category     by remember { mutableStateOf("ANNOUNCEMENT") }
+    var isUrgent     by remember { mutableStateOf(false) }
 
-    // ── Form fields ──────────────────────────────────────────────
-    var title       by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var date        by remember { mutableStateOf("") }
-    var time        by remember { mutableStateOf("") }
-    var location    by remember { mutableStateOf("") }
-    var organizer   by remember { mutableStateOf("") }
-    var category    by remember { mutableStateOf("EVENT") }
-
-    // ── Validation error states ──────────────────────────────────
     var titleError       by remember { mutableStateOf(false) }
     var descriptionError by remember { mutableStateOf(false) }
+    var postedByError    by remember { mutableStateOf(false) }
     var dateError        by remember { mutableStateOf(false) }
-    var timeError        by remember { mutableStateOf(false) }
-    var locationError    by remember { mutableStateOf(false) }
-    var organizerError   by remember { mutableStateOf(false) }
 
-    // ── Success dialog state ─────────────────────────────────────
     var showSuccessDialog by remember { mutableStateOf(false) }
 
-    // ── Category options ─────────────────────────────────────────
-    val categoryOptions = listOf("EVENT", "JOBS", "SERVICE", "NEWS", "HEALTH")
+    val noticeCategories = listOf(
+        "ANNOUNCEMENT", "ALERT", "EVENT",
+        "HEALTH", "SECURITY", "GENERAL"
+    )
 
-    // ── Success dialog ───────────────────────────────────────────
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { },
             containerColor = Color.White,
             shape = RoundedCornerShape(20.dp),
             title = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally,
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "🎉", fontSize = 48.sp)
+                    Text(text = "📌", fontSize = 48.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Event Posted!",
+                        text = "Notice Posted!",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = DeepIndigo
@@ -186,7 +170,7 @@ fun AddEventScreen(
             },
             text = {
                 Text(
-                    text = "Your event has been successfully added to the community board.",
+                    text = "Your notice has been successfully posted to the community board.",
                     fontSize = 14.sp,
                     color = SubtitleGray
                 )
@@ -201,7 +185,7 @@ fun AddEventScreen(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Back to Events", color = Color.White)
+                    Text("Back to Notice Board", color = Color.White)
                 }
             }
         )
@@ -213,7 +197,7 @@ fun AddEventScreen(
             .background(BgColor)
     ) {
 
-        // ── GRADIENT HEADER ──────────────────────────────────────
+        // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -233,24 +217,22 @@ fun AddEventScreen(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Add New Event",
+                        text = "Post a Notice",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }
-
                 Spacer(modifier = Modifier.height(6.dp))
-
                 Text(
-                    text = "  Fill in the details to post your event",
+                    text = "  Share an announcement with your community",
                     fontSize = 13.sp,
                     color = Color(0xCCFFFFFF)
                 )
             }
         }
 
-        // ── FORM BODY ────────────────────────────────────────────
+        // Form
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -259,39 +241,43 @@ fun AddEventScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
-            // ── Event Title ──────────────────────────────────────
-            EventTextField(
+            NoticeTextField(
                 value = title,
-                onValueChange = {
-                    title = it
-                    titleError = false
-                },
-                label = "Event Title *",
-                placeholder = "e.g. Community Clean-Up",
+                onValueChange = { title = it; titleError = false },
+                label = "Notice Title *",
+                placeholder = "e.g. Water Interruption Notice",
                 isError = titleError
             )
 
-            // ── Description ──────────────────────────────────────
-            EventTextField(
+            NoticeTextField(
                 value = description,
-                onValueChange = {
-                    description = it
-                    descriptionError = false
-                },
+                onValueChange = { description = it; descriptionError = false },
                 label = "Description *",
-                placeholder = "Describe your event...",
+                placeholder = "Describe the notice in detail...",
                 isError = descriptionError,
                 singleLine = false,
                 maxLines = 4
             )
 
-            // ── Date ─────────────────────────────────────────────
-            EventTextField(
+            NoticeTextField(
+                value = postedBy,
+                onValueChange = { postedBy = it; postedByError = false },
+                label = "Posted By *",
+                placeholder = "e.g. Nairobi Water",
+                isError = postedByError,
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = "Posted By",
+                        tint = if (postedByError) ErrorRed else RoyalPurple,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            )
+
+            NoticeTextField(
                 value = date,
-                onValueChange = {
-                    date = it
-                    dateError = false
-                },
+                onValueChange = { date = it; dateError = false },
                 label = "Date *",
                 placeholder = "e.g. Saturday, May 10 2026",
                 isError = dateError,
@@ -305,66 +291,7 @@ fun AddEventScreen(
                 }
             )
 
-            // ── Time ─────────────────────────────────────────────
-            EventTextField(
-                value = time,
-                onValueChange = {
-                    time = it
-                    timeError = false
-                },
-                label = "Time *",
-                placeholder = "e.g. 8:00 AM",
-                isError = timeError,
-                leadingIcon = {
-                    Text(
-                        text = "⏰",
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(start = 4.dp)
-                    )
-                }
-            )
-
-            // ── Location ─────────────────────────────────────────
-            EventTextField(
-                value = location,
-                onValueChange = {
-                    location = it
-                    locationError = false
-                },
-                label = "Location *",
-                placeholder = "e.g. Westlands Park, Nairobi",
-                isError = locationError,
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = "Location",
-                        tint = if (locationError) ErrorRed else RoyalPurple,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            )
-
-            // ── Organizer ────────────────────────────────────────
-            EventTextField(
-                value = organizer,
-                onValueChange = {
-                    organizer = it
-                    organizerError = false
-                },
-                label = "Organizer *",
-                placeholder = "e.g. CommonLink Team",
-                isError = organizerError,
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "Organizer",
-                        tint = if (organizerError) ErrorRed else RoyalPurple,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            )
-
-            // ── Category selector ────────────────────────────────
+            // Category chips
             Column {
                 Text(
                     text = "Category",
@@ -374,47 +301,85 @@ fun AddEventScreen(
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    categoryOptions.forEach { option ->
-                        CategoryChip(
-                            label = option,
-                            isSelected = category == option,
-                            onClick = { category = option }
+                    noticeCategories.take(3).forEach { cat ->
+                        NoticeCategoryChip(
+                            label = cat,
+                            isSelected = category == cat,
+                            onClick = { category = cat }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    noticeCategories.drop(3).forEach { cat ->
+                        NoticeCategoryChip(
+                            label = cat,
+                            isSelected = category == cat,
+                            onClick = { category = cat }
                         )
                     }
                 }
             }
 
+            // Urgent toggle
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(if (isUrgent) Color(0xFFFFEBEE) else Color.White)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Mark as Urgent 🚨",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        color = if (isUrgent) UrgentRed else DeepIndigo
+                    )
+                    Text(
+                        text = "Urgent notices appear at the top",
+                        fontSize = 12.sp,
+                        color = SubtitleGray
+                    )
+                }
+                Switch(
+                    checked = isUrgent,
+                    onCheckedChange = { isUrgent = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = UrgentRed
+                    )
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ── Submit button ────────────────────────────────────
+            // Submit button
             Button(
                 onClick = {
-                    // Validate all fields
                     titleError       = title.isBlank()
                     descriptionError = description.isBlank()
+                    postedByError    = postedBy.isBlank()
                     dateError        = date.isBlank()
-                    timeError        = time.isBlank()
-                    locationError    = location.isBlank()
-                    organizerError   = organizer.isBlank()
 
-                    // If all valid — save to Firebase
                     val allValid = !titleError && !descriptionError &&
-                            !dateError  && !timeError &&
-                            !locationError && !organizerError
+                            !postedByError && !dateError
 
                     if (allValid) {
-                        val newEvent = Event(
+                        val newNotice = Notice(
                             title = title,
                             description = description,
+                            postedBy = postedBy,
                             date = date,
-                            time = time,
-                            location = location,
-                            organizer = organizer,
-                            category = category
+                            category = category,
+                            urgent = isUrgent
                         )
-                        viewModel.addEvent(newEvent)  // ✅ saves to Firebase
+                        viewModel.addNotice(newNotice)
                         showSuccessDialog = true
                     }
                 },
@@ -425,7 +390,7 @@ fun AddEventScreen(
                 shape = RoundedCornerShape(14.dp)
             ) {
                 Text(
-                    text = "Post Event 📣",
+                    text = "Post Notice 📌",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -439,6 +404,6 @@ fun AddEventScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun AddEventScreenPreview() {
-    AddEventScreen(rememberNavController())
+fun AddNoticeScreenPreview() {
+    AddNoticeScreen(rememberNavController())
 }

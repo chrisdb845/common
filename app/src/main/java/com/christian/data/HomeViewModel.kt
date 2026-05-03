@@ -2,13 +2,16 @@ package com.christian.commonlink.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class HomeViewModel : ViewModel() {
 
-    // ── Stats counts ────────────────────────────────────────────
     private val _membersCount = MutableStateFlow("0")
     val membersCount: StateFlow<String> = _membersCount
 
@@ -18,27 +21,47 @@ class HomeViewModel : ViewModel() {
     private val _jobsCount = MutableStateFlow("0")
     val jobsCount: StateFlow<String> = _jobsCount
 
-    // ── Loading state ────────────────────────────────────────────
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val dbRef = FirebaseDatabase.getInstance().reference.child("stats")
+
     init {
-        // Later: replace this with your Firebase fetch
-        loadMockCounts()
+        fetchCountsFromFirebase()
     }
 
-    // ── Mock data — replace with Firebase later ──────────────────
-    private fun loadMockCounts() {
-        viewModelScope.launch {
-            // Simulates a network call
-            _membersCount.value = "1.2K"
-            _eventsCount.value  = "38"
-            _jobsCount.value    = "94"
-            _isLoading.value    = false
-        }
+    private fun fetchCountsFromFirebase() {
+        _isLoading.value = true
+
+        // ── Members count ────────────────────────────────────────
+        dbRef.child("membersCount").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                _membersCount.value = snapshot.getValue(String::class.java) ?: "0"
+                _isLoading.value = false
+            }
+            override fun onCancelled(error: DatabaseError) {
+                _isLoading.value = false
+            }
+        })
+
+        // ── Events count ─────────────────────────────────────────
+        dbRef.child("eventsCount").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                _eventsCount.value = snapshot.getValue(String::class.java) ?: "0"
+            }
+            override fun onCancelled(error: DatabaseError) {}
+        })
+
+        // ── Jobs count ───────────────────────────────────────────
+        dbRef.child("jobsCount").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                _jobsCount.value = snapshot.getValue(String::class.java) ?: "0"
+            }
+            override fun onCancelled(error: DatabaseError) {}
+        })
     }
 
-    // ── Update functions — call these after Firebase writes ──────
+    // ── Manual update functions ──────────────────────────────────
     fun updateMembers(count: String) {
         viewModelScope.launch { _membersCount.value = count }
     }
@@ -50,26 +73,4 @@ class HomeViewModel : ViewModel() {
     fun updateJobs(count: String) {
         viewModelScope.launch { _jobsCount.value = count }
     }
-
-    // ── When you connect Firebase, replace loadMockCounts() ──────
-    // with this pattern:
-    //
-    // fun fetchCountsFromFirebase() {
-    //     val db = FirebaseDatabase.getInstance().reference
-    //
-    //     db.child("stats/membersCount").addValueEventListener(
-    //         object : ValueEventListener {
-    //             override fun onDataChange(snapshot: DataSnapshot) {
-    //                 _membersCount.value = snapshot.getValue(String::class.java) ?: "0"
-    //                 _isLoading.value = false
-    //             }
-    //             override fun onCancelled(error: DatabaseError) {
-    //                 _isLoading.value = false
-    //             }
-    //         }
-    //     )
-    //
-    //     db.child("stats/eventsCount").addValueEventListener(...)
-    //     db.child("stats/jobsCount").addValueEventListener(...)
-    // }
 }

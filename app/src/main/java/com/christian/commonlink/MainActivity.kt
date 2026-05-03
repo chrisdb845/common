@@ -11,8 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.christian.commonlink.navigation.AppNavHost
 import com.christian.commonlink.ui.theme.CommonLinkTheme
-import com.navigation.AppNavHost
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
