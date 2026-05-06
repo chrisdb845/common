@@ -2,6 +2,7 @@ package com.christian.commonlink.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -12,10 +13,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import com.christian.commonlink.navigation.ROUT_EDIT_PROFILE
 import com.christian.commonlink.navigation.ROUT_LOGIN
 import com.christian.commonlink.ui.screens.auth.AuthViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -115,20 +117,19 @@ fun ProfileStatBox(value: String, label: String) {
 @Composable
 fun ProfileScreen(navController: NavController) {
 
-    // ✅ Get current Firebase user
-    val auth = FirebaseAuth.getInstance()
+    // ✅ Firebase user data
+    val auth        = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
+    val userEmail   = currentUser?.email ?: "No email found"
+    val userName    = currentUser?.displayName?.ifBlank { null }
+        ?: userEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
 
-    // ✅ Get email from Firebase
-    val userEmail = currentUser?.email ?: "No email found"
+    // ✅ ViewModels
+    val authViewModel:    AuthViewModel    = viewModel()
+    val profileViewModel: ProfileViewModel = viewModel()
 
-    // ✅ Get display name — use email prefix if no name set
-    val userName = currentUser?.displayName?.ifBlank { null }
-        ?: userEmail.substringBefore("@")
-            .replaceFirstChar { it.uppercase() }
-
-    // ✅ AuthViewModel for logout
-    val authViewModel: AuthViewModel = viewModel()
+    // ✅ Observe profile image from Firebase
+    val profileImageUrl by profileViewModel.profileImageUrl.collectAsState()
 
     var notificationsEnabled by remember { mutableStateOf(true) }
 
@@ -139,7 +140,7 @@ fun ProfileScreen(navController: NavController) {
             .verticalScroll(rememberScrollState())
     ) {
 
-        // ── GRADIENT HEADER with avatar ──────────────────────────
+        // ── GRADIENT HEADER ──────────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -163,10 +164,15 @@ fun ProfileScreen(navController: NavController) {
                             tint = Color.White
                         )
                     }
+
+                    // ✅ Edit Profile button navigates to EditProfileScreen
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(50))
                             .background(Color(0x33FFFFFF))
+                            .clickable {
+                                navController.navigate(ROUT_EDIT_PROFILE)
+                            }
                             .padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -194,7 +200,7 @@ fun ProfileScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Avatar circle
+                    // ✅ Avatar — shows real photo or first letter
                     Box(
                         modifier = Modifier
                             .size(90.dp)
@@ -204,21 +210,36 @@ fun ProfileScreen(navController: NavController) {
                                     colors = listOf(SoftViolet, DeepIndigo)
                                 )
                             )
-                            .border(3.dp, AccentGold, CircleShape),
+                            .border(3.dp, AccentGold, CircleShape)
+                            .clickable {
+                                navController.navigate(ROUT_EDIT_PROFILE)
+                            },
                         contentAlignment = Alignment.Center
                     ) {
-                        // ✅ Show first letter of username as avatar
-                        Text(
-                            text = userName.first().uppercase(),
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        if (profileImageUrl != null) {
+                            // ✅ Show real profile image from Firebase Storage
+                            AsyncImage(
+                                model = profileImageUrl,
+                                contentDescription = "Profile Photo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(90.dp)
+                                    .clip(CircleShape)
+                            )
+                        } else {
+                            // ✅ Show first letter as fallback
+                            Text(
+                                text = userName.first().uppercase(),
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // ✅ Real username from Firebase
+                    // ✅ Real name from Firebase
                     Text(
                         text = userName,
                         fontSize = 22.sp,
@@ -289,7 +310,6 @@ fun ProfileScreen(navController: NavController) {
                 Divider(color = Color(0xFFEEEEEE))
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // ✅ Real data from Firebase
                 ProfileInfoRow(
                     icon = Icons.Default.Person,
                     label = "Username",
@@ -388,7 +408,6 @@ fun ProfileScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
 
         // ── LOGOUT BUTTON ────────────────────────────────────────
-        // ✅ Actually logs out via Firebase
         Button(
             onClick = {
                 authViewModel.logout {
@@ -418,8 +437,143 @@ fun ProfileScreen(navController: NavController) {
     }
 }
 
+// ── Preview ──────────────────────────────────────────────────────
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
-    ProfileScreen(rememberNavController())
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F3FB))
+            .verticalScroll(rememberScrollState())
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF1A1040), Color(0xFF6B3FA0))
+                    )
+                )
+                .padding(20.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF9B6FD4))
+                        .border(3.dp, Color(0xFFFFD166), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "C",
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    "Christian Mwangi",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "christian@email.com",
+                    fontSize = 13.sp,
+                    color = Color(0xCCFFFFFF)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Box(
+                    modifier = Modifier
+                        .background(
+                            Color(0xFFFFD166),
+                            shape = RoundedCornerShape(50)
+                        )
+                        .padding(horizontal = 14.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        "⭐ Community Member",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1040)
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            ProfileStatBox("5", "Events")
+            ProfileStatBox("3", "Jobs")
+            ProfileStatBox("8", "Notices")
+        }
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(4.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    "Account Information",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF1A1040)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider(color = Color(0xFFEEEEEE))
+                ProfileInfoRow(
+                    icon = Icons.Default.Person,
+                    label = "Username",
+                    value = "Christian Mwangi"
+                )
+                Divider(color = Color(0xFFEEEEEE))
+                ProfileInfoRow(
+                    icon = Icons.Default.Email,
+                    label = "Email Address",
+                    value = "christian@email.com"
+                )
+                Divider(color = Color(0xFFEEEEEE))
+                ProfileInfoRow(
+                    icon = Icons.Default.DateRange,
+                    label = "Member Since",
+                    value = "May 2026"
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(
+            onClick = {},
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .padding(horizontal = 20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFFFEBEE)
+            ),
+            shape = RoundedCornerShape(14.dp)
+        ) {
+            Text(
+                "🚪 Log Out",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFB71C1C)
+            )
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+    }
 }

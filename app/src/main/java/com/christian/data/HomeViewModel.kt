@@ -36,7 +36,13 @@ class HomeViewModel : ViewModel() {
         // ── Members count ────────────────────────────────────────
         dbRef.child("membersCount").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                _membersCount.value = snapshot.getValue(String::class.java) ?: "0"
+                // ✅ Handle both String and Long from Firebase
+                _membersCount.value = when (val value = snapshot.value) {
+                    is String -> value
+                    is Long   -> value.toString()
+                    is Double -> value.toLong().toString()
+                    else      -> "0"
+                }
                 _isLoading.value = false
             }
             override fun onCancelled(error: DatabaseError) {
@@ -47,7 +53,13 @@ class HomeViewModel : ViewModel() {
         // ── Events count ─────────────────────────────────────────
         dbRef.child("eventsCount").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                _eventsCount.value = snapshot.getValue(String::class.java) ?: "0"
+                // ✅ Handle both String and Long from Firebase
+                _eventsCount.value = when (val value = snapshot.value) {
+                    is String -> value
+                    is Long   -> value.toString()
+                    is Double -> value.toLong().toString()
+                    else      -> "0"
+                }
             }
             override fun onCancelled(error: DatabaseError) {}
         })
@@ -55,13 +67,18 @@ class HomeViewModel : ViewModel() {
         // ── Jobs count ───────────────────────────────────────────
         dbRef.child("jobsCount").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                _jobsCount.value = snapshot.getValue(String::class.java) ?: "0"
+                // ✅ Handle both String and Long from Firebase
+                _jobsCount.value = when (val value = snapshot.value) {
+                    is String -> value
+                    is Long   -> value.toLong().toString()
+                    is Double -> value.toLong().toString()
+                    else      -> "0"
+                }
             }
             override fun onCancelled(error: DatabaseError) {}
         })
     }
 
-    // ── Manual update functions ──────────────────────────────────
     fun updateMembers(count: String) {
         viewModelScope.launch { _membersCount.value = count }
     }

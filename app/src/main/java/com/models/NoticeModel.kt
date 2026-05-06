@@ -7,5 +7,6 @@ data class Notice(
     val postedBy: String = "",
     val date: String = "",
     val category: String = "",
-    val urgent: Boolean = false
+    val urgent: Boolean = false,
+    val createdBy: String = ""
 )

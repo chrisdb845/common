@@ -45,6 +45,7 @@ import com.christian.commonlink.navigation.ROUT_POST_NOTICE
 import com.christian.commonlink.navigation.ROUT_VOLUNTEER
 
 
+
 // ── Brand palette ───────────────────────────────────────────────
 private val DeepIndigo   = Color(0xFF1A1040)
 private val RoyalPurple  = Color(0xFF6B3FA0)
@@ -460,5 +461,90 @@ fun Home(
 @Preview(showBackground = true)
 @Composable
 fun HomePreview() {
-    Home(rememberNavController())
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F3FB))
+    ) {
+        // Preview header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF1A1040), Color(0xFF6B3FA0))
+                    )
+                )
+                .padding(20.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Hello 👋",
+                    fontSize = 13.sp,
+                    color = Color(0xCCFFFFFF)
+                )
+                Text(
+                    text = "Community Hub",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                // Stats preview
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color(0x22FFFFFF),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .padding(vertical = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("1.2K", fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp, color = Color.White)
+                        Text("Members", fontSize = 11.sp, color = Color(0xCCFFFFFF))
+                    }
+                    Divider(modifier = Modifier.height(32.dp).width(1.dp),
+                        color = Color(0x44FFFFFF))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("38", fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp, color = Color.White)
+                        Text("Events", fontSize = 11.sp, color = Color(0xCCFFFFFF))
+                    }
+                    Divider(modifier = Modifier.height(32.dp).width(1.dp),
+                        color = Color(0x44FFFFFF))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("94", fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp, color = Color.White)
+                        Text("Jobs", fontSize = 11.sp, color = Color(0xCCFFFFFF))
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        // Preview post cards
+        Row(
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            PostCard(
+                title = "Community Clean-Up",
+                subtitle = "📅 Saturday • 8AM • Westlands Park",
+                tag = "EVENT",
+                image = R.drawable.community,
+                onClick = {}
+            )
+            PostCard(
+                title = "Job Opportunities",
+                subtitle = "💼 Part-time • Students welcome",
+                tag = "JOBS",
+                image = R.drawable.community,
+                onClick = {}
+            )
+        }
+    }
 }

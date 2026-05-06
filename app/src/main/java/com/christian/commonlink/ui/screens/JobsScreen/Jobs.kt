@@ -33,6 +33,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.christian.commonlink.navigation.ROUT_ADD_JOB
+import androidx.compose.foundation.layout.Arrangement
+
 
 private val DeepIndigo   = Color(0xFF1A1040)
 private val RoyalPurple  = Color(0xFF6B3FA0)
@@ -386,6 +388,77 @@ fun JobsScreen(
 @Preview(showBackground = true)
 @Composable
 fun JobsScreenPreview() {
-    JobsScreen(rememberNavController())
-}
+    val mockJobs = listOf(
+        Job(
+            id = "1",
+            title = "Software Developer",
+            company = "TechCorp Nairobi",
+            description = "Looking for a junior Android developer with Kotlin experience",
+            location = "Westlands, Nairobi",
+            salary = "KSH 50,000 - 80,000",
+            type = "Full-time",
+            postedBy = "TechCorp HR",
+            deadline = "May 30 2026"
+        ),
+        Job(
+            id = "2",
+            title = "Graphic Designer",
+            company = "Creative Studio",
+            description = "Talented designer needed for branding and social media",
+            location = "CBD, Nairobi",
+            salary = "KSH 30,000 - 50,000",
+            type = "Part-time",
+            postedBy = "Studio Manager",
+            deadline = "June 5 2026"
+        ),
+        Job(
+            id = "3",
+            title = "Marketing Intern",
+            company = "StartupKE",
+            description = "Exciting internship opportunity at a fast growing startup",
+            location = "Remote",
+            salary = "KSH 15,000",
+            type = "Internship",
+            postedBy = "HR StartupKE",
+            deadline = "June 10 2026"
+        )
+    )
 
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F3FB))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        // Preview header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF1B5E20), Color(0xFF2E7D32))
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(16.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Job Opportunities",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = "${mockJobs.size} Jobs Available",
+                    fontSize = 12.sp,
+                    color = Color(0xCCFFFFFF)
+                )
+            }
+        }
+        mockJobs.forEach { job ->
+            JobCard(job = job, onClick = {})
+        }
+    }
+}

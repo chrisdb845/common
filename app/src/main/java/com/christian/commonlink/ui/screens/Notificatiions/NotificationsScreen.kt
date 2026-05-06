@@ -1,4 +1,5 @@
-package com.christian.commonlink.ui.screens.Notificatiions
+// ✅ Must be exactly this
+package com.christian.commonlink.ui.screens.noticeboard
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -303,5 +304,105 @@ fun NotificationsScreen(navController: NavController) {
 @Preview(showBackground = true)
 @Composable
 fun NotificationsScreenPreview() {
-    NotificationsScreen(rememberNavController())
+    val mockNotifications = listOf(
+        NotificationItem(
+            id = "1",
+            title = "New Event Posted",
+            message = "Community Clean-Up has been added to events",
+            time = "2m ago",
+            emoji = "📅",
+            isRead = false
+        ),
+        NotificationItem(
+            id = "2",
+            title = "Urgent Notice",
+            message = "Water interruption scheduled for Monday 6AM-6PM",
+            time = "1h ago",
+            emoji = "🚨",
+            isRead = false
+        ),
+        NotificationItem(
+            id = "3",
+            title = "New Job Posted",
+            message = "Software Developer role at TechCorp Nairobi",
+            time = "3h ago",
+            emoji = "💼",
+            isRead = false
+        ),
+        NotificationItem(
+            id = "4",
+            title = "New Service Listed",
+            message = "John Kamau listed Plumbing Services",
+            time = "5h ago",
+            emoji = "🔧",
+            isRead = true
+        ),
+        NotificationItem(
+            id = "5",
+            title = "Community Update",
+            message = "Monthly community meeting this Sunday at 2PM",
+            time = "1d ago",
+            emoji = "📌",
+            isRead = true
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F3FB))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        // Preview header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF1A1040), Color(0xFF6B3FA0))
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Notifications",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "3 Unread",
+                        fontSize = 12.sp,
+                        color = Color(0xCCFFFFFF)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .background(
+                            Color(0xFFFFD166),
+                            shape = RoundedCornerShape(50)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "3 New",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1040)
+                    )
+                }
+            }
+        }
+        mockNotifications.forEach { notification ->
+            NotificationCard(notification = notification)
+        }
+    }
 }

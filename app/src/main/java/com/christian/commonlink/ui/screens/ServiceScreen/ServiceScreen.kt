@@ -33,6 +33,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.christian.commonlink.navigation.ROUT_ADD_SERVICE
+import androidx.compose.foundation.layout.Arrangement
+
 
 private val DeepIndigo   = Color(0xFF1A1040)
 private val RoyalPurple  = Color(0xFF6B3FA0)
@@ -380,5 +382,74 @@ fun ServicesScreen(
 @Preview(showBackground = true)
 @Composable
 fun ServicesScreenPreview() {
-    ServicesScreen(rememberNavController())
+    val mockServices = listOf(
+        Service(
+            id = "1",
+            title = "Plumbing Services",
+            provider = "John Kamau",
+            description = "Professional plumbing repairs and installations across Nairobi",
+            location = "Nairobi Wide",
+            phone = "0712345678",
+            category = "Plumbing",
+            rating = "4.8"
+        ),
+        Service(
+            id = "2",
+            title = "Electrical Repairs",
+            provider = "Peter Odhiambo",
+            description = "Certified electrician for home and office wiring and repairs",
+            location = "Westlands, Nairobi",
+            phone = "0723456789",
+            category = "Electric",
+            rating = "4.6"
+        ),
+        Service(
+            id = "3",
+            title = "Home Cleaning",
+            provider = "Mary Wanjiru",
+            description = "Thorough home and office cleaning services at affordable rates",
+            location = "Kileleshwa, Nairobi",
+            phone = "0734567890",
+            category = "Cleaning",
+            rating = "4.9"
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F3FB))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        // Preview header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF004D40), Color(0xFF00695C))
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(16.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Local Services",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = "${mockServices.size} Services Available",
+                    fontSize = 12.sp,
+                    color = Color(0xCCFFFFFF)
+                )
+            }
+        }
+        mockServices.forEach { service ->
+            ServiceCard(service = service, onClick = {})
+        }
+    }
 }

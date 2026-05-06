@@ -1,4 +1,4 @@
-package com.christian.commonlink.ui.screens.NoticeBoard
+package com.christian.commonlink.ui.screens.noticeboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,9 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.christian.commonlink.ui.screens.noticeboard.Notice
-import com.christian.commonlink.ui.screens.noticeboard.NoticeViewModel
+
 
 private val DeepIndigo   = Color(0xFF1A1040)
 private val RoyalPurple  = Color(0xFF6B3FA0)
@@ -405,5 +403,30 @@ fun AddNoticeScreen(
 @Preview(showBackground = true)
 @Composable
 fun AddNoticeScreenPreview() {
-    AddNoticeScreen(rememberNavController())
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F3FB))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF1A1040), Color(0xFF6B3FA0))
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Post a Notice",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+    }
 }

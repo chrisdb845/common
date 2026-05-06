@@ -31,10 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.christian.commonlink.navigation.ROUT_ADD_EVENT
 import com.christian.commonlink.ui.screens.events.Event        // ✅ Fix 1 — import Event model
 import com.christian.commonlink.ui.screens.events.EventViewModel
+import androidx.compose.foundation.layout.Arrangement
+import com.christian.commonlink.navigation.ROUT_ADD_EVENT
+
 
 // ── Brand palette ────────────────────────────────────────────────
 private val DeepIndigo   = Color(0xFF1A1040)
@@ -385,12 +386,11 @@ fun EventsScreen(
 @Preview(showBackground = true)
 @Composable
 fun EventsScreenPreview() {
-    // ✅ Mock data so preview works without ViewModel
     val mockEvents = listOf(
         Event(
             id = "1",
             title = "Community Clean-Up",
-            description = "Join us to clean up Westlands Park",
+            description = "Join us to clean up Westlands Park this Saturday morning",
             date = "Saturday, May 10 2026",
             time = "8:00 AM",
             location = "Westlands Park, Nairobi",
@@ -400,12 +400,22 @@ fun EventsScreenPreview() {
         Event(
             id = "2",
             title = "Job Fair 2026",
-            description = "Meet top employers in your area",
+            description = "Meet top employers in your area and find your dream job",
             date = "Sunday, May 11 2026",
             time = "10:00 AM",
             location = "KICC, Nairobi",
             category = "EVENT",
             organizer = "Nairobi Chamber"
+        ),
+        Event(
+            id = "3",
+            title = "Health Awareness Day",
+            description = "Free health checkups and medical advice from professionals",
+            date = "Monday, May 12 2026",
+            time = "9:00 AM",
+            location = "Uhuru Park, Nairobi",
+            category = "HEALTH",
+            organizer = "Nairobi Health Dept"
         )
     )
 
@@ -416,6 +426,32 @@ fun EventsScreenPreview() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        // Preview header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF1A1040), Color(0xFF6B3FA0))
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(16.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Community Events",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = "${mockEvents.size} Events",
+                    fontSize = 12.sp,
+                    color = Color(0xCCFFFFFF)
+                )
+            }
+        }
         mockEvents.forEach { event ->
             EventCard(event = event, onClick = {})
         }
