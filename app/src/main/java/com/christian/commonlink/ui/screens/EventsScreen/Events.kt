@@ -15,13 +15,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -31,27 +31,85 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.christian.commonlink.ui.screens.events.Event        // ✅ Fix 1 — import Event model
-import com.christian.commonlink.ui.screens.events.EventViewModel
-import androidx.compose.foundation.layout.Arrangement
+import androidx.navigation.compose.rememberNavController
+import com.christian.commonlink.models.Event
+// ✅ Only one import
+    // ✅ from models package
 import com.christian.commonlink.navigation.ROUT_ADD_EVENT
+import com.christian.commonlink.ui.screens.events.EventViewModel
+import com.google.firebase.auth.FirebaseAuth
 
-
-// ── Brand palette ────────────────────────────────────────────────
 private val DeepIndigo   = Color(0xFF1A1040)
 private val RoyalPurple  = Color(0xFF6B3FA0)
-private val SoftViolet   = Color(0xFF9B6FD4)
 private val AccentGold   = Color(0xFFFFD166)
 private val CardWhite    = Color(0xFFFFFFFF)
 private val SubtitleGray = Color(0xFF888888)
 private val BgColor      = Color(0xFFF5F3FB)
 
-// ── Single Event Card ────────────────────────────────────────────
+// ── Event Card ───────────────────────────────────────────────────
 @Composable
 fun EventCard(
     event: Event,
-    onClick: () -> Unit  // ✅ Fix 2 — removed the 's' from Units
+    onClick: () -> Unit,
+    onDelete: (() -> Unit)? = null,
+    isOwner: Boolean = false
 ) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "🗑️", fontSize = 40.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Delete Event?",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = DeepIndigo
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete \"${event.title}\"? This cannot be undone.",
+                    fontSize = 14.sp,
+                    color = SubtitleGray
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDelete?.invoke()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFB71C1C)
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Yes Delete", color = Color.White)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showDeleteDialog = false },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancel", color = RoyalPurple)
+                }
+            }
+        )
+    }
+
     Card(
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -62,7 +120,6 @@ fun EventCard(
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
 
-            // Left color accent bar
             Box(
                 modifier = Modifier
                     .width(6.dp)
@@ -80,19 +137,14 @@ fun EventCard(
                     .padding(16.dp)
             ) {
 
-                // Category tag + organizer row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Category badge
                     Box(
                         modifier = Modifier
-                            .background(
-                                color = AccentGold,
-                                shape = RoundedCornerShape(50)
-                            )
+                            .background(AccentGold, shape = RoundedCornerShape(50))
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
@@ -103,7 +155,6 @@ fun EventCard(
                         )
                     }
 
-                    // Organizer
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Default.Person,
@@ -117,12 +168,27 @@ fun EventCard(
                             fontSize = 11.sp,
                             color = SubtitleGray
                         )
+
+                        // ✅ Delete button — only for owner
+                        if (isOwner) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = { showDeleteDialog = true },
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = Color(0xFFB71C1C),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Event title
                 Text(
                     text = event.title,
                     fontWeight = FontWeight.Bold,
@@ -134,7 +200,6 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Description
                 Text(
                     text = event.description,
                     fontSize = 13.sp,
@@ -146,7 +211,6 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Date + Time row
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.DateRange,
@@ -165,7 +229,6 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Location row
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.LocationOn,
@@ -187,7 +250,7 @@ fun EventCard(
     }
 }
 
-// ── Empty state ──────────────────────────────────────────────────
+// ── Empty State ──────────────────────────────────────────────────
 @Composable
 fun EmptyEventsState() {
     Column(
@@ -220,10 +283,12 @@ fun EventsScreen(
     navController: NavController,
     viewModel: EventViewModel = viewModel()
 ) {
-
     val events    by viewModel.events.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error     by viewModel.errorMessage.collectAsState()
+
+    // ✅ Get current user ID for ownership check
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     Scaffold(
         floatingActionButton = {
@@ -237,15 +302,12 @@ fun EventsScreen(
             }
         }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(BgColor)
                 .padding(paddingValues)
         ) {
-
-            // ── GRADIENT HEADER ──────────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -271,9 +333,7 @@ fun EventsScreen(
                             color = Color.White
                         )
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -304,7 +364,6 @@ fun EventsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── BODY ─────────────────────────────────────────────
             when {
                 isLoading -> {
                     Box(
@@ -350,9 +409,7 @@ fun EventsScreen(
                     }
                 }
 
-                events.isEmpty() -> {
-                    EmptyEventsState()
-                }
+                events.isEmpty() -> EmptyEventsState()
 
                 else -> {
                     LazyColumn(
@@ -370,8 +427,10 @@ fun EventsScreen(
                             ) {
                                 EventCard(
                                     event = event,
-                                    onClick = {
-                                        // Navigate to event detail screen later
+                                    isOwner = event.createdBy == currentUserId,
+                                    onClick = { },
+                                    onDelete = {
+                                        viewModel.deleteEvent(event.id)
                                     }
                                 )
                             }
@@ -383,6 +442,7 @@ fun EventsScreen(
     }
 }
 
+// ── Preview ──────────────────────────────────────────────────────
 @Preview(showBackground = true)
 @Composable
 fun EventsScreenPreview() {
@@ -406,19 +466,8 @@ fun EventsScreenPreview() {
             location = "KICC, Nairobi",
             category = "EVENT",
             organizer = "Nairobi Chamber"
-        ),
-        Event(
-            id = "3",
-            title = "Health Awareness Day",
-            description = "Free health checkups and medical advice from professionals",
-            date = "Monday, May 12 2026",
-            time = "9:00 AM",
-            location = "Uhuru Park, Nairobi",
-            category = "HEALTH",
-            organizer = "Nairobi Health Dept"
         )
     )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -426,34 +475,13 @@ fun EventsScreenPreview() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Preview header
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFF1A1040), Color(0xFF6B3FA0))
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(16.dp)
-        ) {
-            Column {
-                Text(
-                    text = "Community Events",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    text = "${mockEvents.size} Events",
-                    fontSize = 12.sp,
-                    color = Color(0xCCFFFFFF)
-                )
-            }
-        }
         mockEvents.forEach { event ->
-            EventCard(event = event, onClick = {})
+            EventCard(
+                event = event,
+                isOwner = true,
+                onClick = {},
+                onDelete = {}
+            )
         }
     }
 }

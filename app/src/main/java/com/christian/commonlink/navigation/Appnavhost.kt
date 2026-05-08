@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.christian.commonlink.ui.screens.About.AboutScreen
-import com.christian.commonlink.ui.screens.EditProfileScreen
+import com.christian.commonlink.ui.screens.Profile.EditProfileScreen
 import com.christian.commonlink.ui.screens.Mainscreen.MainScreen
 import com.christian.commonlink.ui.screens.auth.LoginScreen
 import com.christian.commonlink.ui.screens.auth.RegisterScreen

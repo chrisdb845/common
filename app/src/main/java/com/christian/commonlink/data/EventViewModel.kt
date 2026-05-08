@@ -1,6 +1,8 @@
 package com.christian.commonlink.ui.screens.events
 
 import androidx.lifecycle.ViewModel
+import com.christian.commonlink.models.Event
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -19,14 +21,10 @@ class EventViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    // ── Firebase reference ───────────────────────────────────────
     private val dbRef = FirebaseDatabase.getInstance().reference.child("events")
 
-    init {
-        fetchEvents()
-    }
+    init { fetchEvents() }
 
-    // ── Fetch all events from Firebase in real time ──────────────
     private fun fetchEvents() {
         _isLoading.value = true
         dbRef.addValueEventListener(object : ValueEventListener {
@@ -39,7 +37,6 @@ class EventViewModel : ViewModel() {
                 _events.value = eventList
                 _isLoading.value = false
             }
-
             override fun onCancelled(error: DatabaseError) {
                 _errorMessage.value = error.message
                 _isLoading.value = false
@@ -47,14 +44,16 @@ class EventViewModel : ViewModel() {
         })
     }
 
-    // ── Add a new event to Firebase ──────────────────────────────
     fun addEvent(event: Event) {
         val newRef = dbRef.push()
-        val newEvent = event.copy(id = newRef.key ?: "")
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: "" // ✅ Added
+        val newEvent = event.copy(
+            id = newRef.key ?: "",
+            createdBy = uid // ✅ Save owner
+        )
         newRef.setValue(newEvent)
     }
 
-    // ── Delete an event from Firebase ────────────────────────────
     fun deleteEvent(eventId: String) {
         dbRef.child(eventId).removeValue()
     }

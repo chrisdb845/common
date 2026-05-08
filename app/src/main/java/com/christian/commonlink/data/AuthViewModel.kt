@@ -85,10 +85,16 @@ class AuthViewModel : ViewModel() {
     }
 
     // ── Logout ───────────────────────────────────────────────────
-    fun logout(onSuccess: () -> Unit) {
-        auth.signOut()
-        _currentUser.value = null
-        onSuccess()
+    fun logout(
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        try {
+            FirebaseAuth.getInstance().signOut()
+            onSuccess()
+        } catch (e: Exception) {
+            onError(e.message ?: "Logout failed")
+        }
     }
 
     // ── Clear error message ──────────────────────────────────────

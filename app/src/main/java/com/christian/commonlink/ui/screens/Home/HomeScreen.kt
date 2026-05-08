@@ -1,7 +1,5 @@
 package com.christian.commonlink.ui.screens.home
 
-import androidx.compose.foundation.Image
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -11,6 +9,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -21,30 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.christian.commonlink.R
-import com.christian.commonlink.navigation.ROUT_EVENTS
-import com.christian.commonlink.navigation.ROUT_JOBS
-import com.christian.commonlink.navigation.ROUT_ADD_EVENT
-import com.christian.commonlink.navigation.ROUT_SERVICES
-import com.christian.commonlink.navigation.ROUT_NOTICE_BOARD
-import com.christian.commonlink.navigation.ROUT_NOTIFICATIONS
-import com.christian.commonlink.navigation.ROUT_PROFILE
-import com.christian.commonlink.navigation.ROUT_SEE_ALL
-import com.christian.commonlink.navigation.ROUT_POST_DETAIL
-import com.christian.commonlink.navigation.ROUT_POST_NOTICE
-import com.christian.commonlink.navigation.ROUT_VOLUNTEER
+import com.christian.commonlink.models.Event
 
-
+import com.christian.commonlink.navigation.*
 
 // ── Brand palette ───────────────────────────────────────────────
 private val DeepIndigo   = Color(0xFF1A1040)
@@ -57,7 +45,6 @@ private val SubtitleGray = Color(0xFF888888)
 data class Category(val label: String, val emoji: String)
 data class QuickAction(val emoji: String, val label: String, val route: String)
 
-// ── Category list ───────────────────────────────────────────────
 val categories = listOf(
     Category("All",      "🌐"),
     Category("Events",   "📅"),
@@ -67,13 +54,10 @@ val categories = listOf(
     Category("Health",   "💊"),
 )
 
-// ── Reusable Post Card ──────────────────────────────────────────
+// ── Dynamic Event Card for Home Screen ──────────────────────────
 @Composable
-fun PostCard(
-    title: String,
-    subtitle: String,
-    tag: String,
-    image: Int,
+fun HomeEventCard(
+    event: Event,
     onClick: () -> Unit
 ) {
     Card(
@@ -81,73 +65,158 @@ fun PostCard(
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
-            .width(220.dp)
+            .width(240.dp)
             .clickable { onClick() }
     ) {
         Column {
-            Box {
-                androidx.compose.foundation.layout.Box(
-                    modifier = Modifier
-                        .height(150.dp)
-                        .fillMaxWidth()
-                ) {
-                    androidx.compose.foundation.Image(
-                        painter = painterResource(image),
-                        contentDescription = title,
-                        modifier = Modifier
-                            .height(150.dp)
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color(0xAA000000))
-                            )
+
+            // ── Colored header banner ────────────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(90.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(DeepIndigo, RoyalPurple)
                         )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                // Category emoji
+                Text(
+                    text = when (event.category.uppercase()) {
+                        "EVENT"   -> "📅"
+                        "JOBS"    -> "💼"
+                        "SERVICE" -> "🔧"
+                        "HEALTH"  -> "💊"
+                        "NEWS"    -> "📰"
+                        else      -> "📌"
+                    },
+                    fontSize = 36.sp
                 )
+
+                // Category badge top right
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(10.dp)
+                        .padding(8.dp)
                         .background(AccentGold, shape = RoundedCornerShape(50))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = tag,
-                        fontSize = 10.sp,
+                        text = event.category,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         color = DeepIndigo
                     )
                 }
             }
+
             Column(modifier = Modifier.padding(12.dp)) {
+
+                // Title
                 Text(
-                    text = title,
+                    text = event.title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
-                    color = DeepIndigo
+                    color = DeepIndigo,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Description
                 Text(
-                    text = subtitle,
+                    text = event.description,
                     fontSize = 12.sp,
-                    color = SubtitleGray
+                    color = SubtitleGray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 16.sp
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Date row
+                if (event.date.isNotEmpty()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = "Date",
+                            tint = RoyalPurple,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = event.date,
+                            fontSize = 11.sp,
+                            color = RoyalPurple,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
+                // Location row
+                if (event.location.isNotEmpty()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = "Location",
+                            tint = SubtitleGray,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = event.location,
+                            fontSize = 11.sp,
+                            color = SubtitleGray,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
+                // Organizer row
+                if (event.organizer.isNotEmpty()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Organizer",
+                            tint = SubtitleGray,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = event.organizer,
+                            fontSize = 11.sp,
+                            color = SubtitleGray,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // View Details button
                 Button(
                     onClick = onClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = RoyalPurple),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = RoyalPurple
+                    ),
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("View Details", fontSize = 13.sp, color = Color.White)
+                    Text(
+                        "View Details",
+                        fontSize = 12.sp,
+                        color = Color.White
+                    )
                 }
             }
         }
@@ -189,10 +258,11 @@ fun Home(
     navcontroller: NavController,
     viewModel: HomeViewModel = viewModel()
 ) {
-    val membersCount by viewModel.membersCount.collectAsState()
-    val eventsCount  by viewModel.eventsCount.collectAsState()
-    val jobsCount    by viewModel.jobsCount.collectAsState()
-    val isLoading    by viewModel.isLoading.collectAsState()
+    val membersCount   by viewModel.membersCount.collectAsState()
+    val eventsCount    by viewModel.eventsCount.collectAsState()
+    val jobsCount      by viewModel.jobsCount.collectAsState()
+    val isLoading      by viewModel.isLoading.collectAsState()
+    val trendingEvents by viewModel.events.collectAsState() // ✅ Live events
 
     var search by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("All") }
@@ -225,7 +295,11 @@ fun Home(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(text = "Hello 👋", fontSize = 13.sp, color = Color(0xCCFFFFFF))
+                        Text(
+                            text = "Hello 👋",
+                            fontSize = 13.sp,
+                            color = Color(0xCCFFFFFF)
+                        )
                         Text(
                             text = "Community Hub",
                             fontSize = 24.sp,
@@ -235,8 +309,14 @@ fun Home(
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box {
-                            IconButton(onClick = { navcontroller.navigate(ROUT_NOTIFICATIONS) }) {
-                                Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = Color.White)
+                            IconButton(onClick = {
+                                navcontroller.navigate(ROUT_NOTIFICATIONS)
+                            }) {
+                                Icon(
+                                    Icons.Default.Notifications,
+                                    contentDescription = "Notifications",
+                                    tint = Color.White
+                                )
                             }
                             Box(
                                 modifier = Modifier
@@ -254,13 +334,19 @@ fun Home(
                                 .clickable { navcontroller.navigate(ROUT_PROFILE) },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color.White, modifier = Modifier.size(22.dp))
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = "Profile",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                // Stats row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -269,20 +355,39 @@ fun Home(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatItem(membersCount, "Members", isLoading)
-                    Divider(modifier = Modifier.height(32.dp).width(1.dp), color = Color(0x44FFFFFF))
+                    Divider(
+                        modifier = Modifier.height(32.dp).width(1.dp),
+                        color = Color(0x44FFFFFF)
+                    )
                     StatItem(eventsCount, "Events", isLoading)
-                    Divider(modifier = Modifier.height(32.dp).width(1.dp), color = Color(0x44FFFFFF))
+                    Divider(
+                        modifier = Modifier.height(32.dp).width(1.dp),
+                        color = Color(0x44FFFFFF)
+                    )
                     StatItem(jobsCount, "Jobs", isLoading)
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                // Search bar
                 TextField(
                     value = search,
                     onValueChange = { search = it },
                     modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = SubtitleGray) },
-                    placeholder = { Text("Search events, jobs, services...", fontSize = 13.sp, color = SubtitleGray) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = SubtitleGray
+                        )
+                    },
+                    placeholder = {
+                        Text(
+                            "Search events, jobs, services...",
+                            fontSize = 13.sp,
+                            color = SubtitleGray
+                        )
+                    },
                     shape = RoundedCornerShape(14.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.White,
@@ -298,7 +403,6 @@ fun Home(
         Spacer(modifier = Modifier.height(20.dp))
 
         // ── CATEGORY CHIPS ───────────────────────────────────────
-        // ✅ Only ONE forEach loop, inside the Row
         Row(
             modifier = Modifier
                 .horizontalScroll(rememberScrollState())
@@ -344,18 +448,36 @@ fun Home(
                 .padding(horizontal = 20.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .clickable { navcontroller.navigate(ROUT_NOTICE_BOARD) }
-                .background(Brush.horizontalGradient(colors = listOf(AccentGold, Color(0xFFFFB830))))
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(AccentGold, Color(0xFFFFB830))
+                    )
+                )
                 .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "📌", fontSize = 26.sp)
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(text = "Notice Board", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DeepIndigo)
-                    Text(text = "3 new announcements from your area", fontSize = 12.sp, color = Color(0xFF4A3000))
+                    Text(
+                        text = "Notice Board",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = DeepIndigo
+                    )
+                    Text(
+                        text = "Latest announcements from your area",
+                        fontSize = 12.sp,
+                        color = Color(0xFF4A3000)
+                    )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "›", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = DeepIndigo)
+                Text(
+                    text = "›",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DeepIndigo
+                )
             }
         }
 
@@ -363,52 +485,76 @@ fun Home(
 
         // ── SECTION TITLE + SEE ALL ──────────────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Trending in Your Community", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DeepIndigo)
+            Text(
+                text = "Trending in Your Community",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = DeepIndigo
+            )
             Text(
                 text = "See all",
                 fontSize = 13.sp,
                 color = RoyalPurple,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable { navcontroller.navigate(ROUT_SEE_ALL) }
+                modifier = Modifier.clickable {
+                    navcontroller.navigate(ROUT_EVENTS)
+                }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ── HORIZONTAL POST CARDS ────────────────────────────────
-        Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
-        ) {
-            PostCard(
-                title = "Community Clean-Up",
-                subtitle = "📅 Saturday • 8AM • Westlands Park",
-                tag = "EVENT",
-                image = R.drawable.community
-            ) { navcontroller.navigate(ROUT_POST_DETAIL) }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            PostCard(
-                title = "Job Opportunities",
-                subtitle = "💼 Part-time • Students welcome",
-                tag = "JOBS",
-                image = R.drawable.community
-            ) { navcontroller.navigate(ROUT_POST_DETAIL) }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            PostCard(
-                title = "Local Services",
-                subtitle = "🔧 Trusted technicians available",
-                tag = "SERVICE",
-                image = R.drawable.community
-            ) { navcontroller.navigate(ROUT_POST_DETAIL) }
+        // ── DYNAMIC TRENDING EVENTS ──────────────────────────────
+        if (trendingEvents.isEmpty()) {
+            // ✅ Empty state
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "📅", fontSize = 36.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "No events yet",
+                        fontSize = 14.sp,
+                        color = SubtitleGray
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Be the first to add one!",
+                        fontSize = 12.sp,
+                        color = SubtitleGray
+                    )
+                }
+            }
+        } else {
+            // ✅ Dynamic events from Firebase
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                trendingEvents.forEach { event ->
+                    HomeEventCard(
+                        event = event,
+                        onClick = {
+                            navcontroller.navigate(ROUT_EVENTS)
+                        }
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -425,7 +571,9 @@ fun Home(
         Spacer(modifier = Modifier.height(14.dp))
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             quickActions.forEachIndexed { index, action ->
@@ -454,9 +602,8 @@ fun Home(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-
-    } // ✅ Closes Column
-} // ✅ Closes Home()
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -466,7 +613,6 @@ fun HomePreview() {
             .fillMaxSize()
             .background(Color(0xFFF5F3FB))
     ) {
-        // Preview header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -490,7 +636,6 @@ fun HomePreview() {
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                // Stats preview
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -502,49 +647,85 @@ fun HomePreview() {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("1.2K", fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp, color = Color.White)
-                        Text("Members", fontSize = 11.sp, color = Color(0xCCFFFFFF))
+                        Text(
+                            "1.2K",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.White
+                        )
+                        Text(
+                            "Members",
+                            fontSize = 11.sp,
+                            color = Color(0xCCFFFFFF)
+                        )
                     }
-                    Divider(modifier = Modifier.height(32.dp).width(1.dp),
-                        color = Color(0x44FFFFFF))
+                    Divider(
+                        modifier = Modifier.height(32.dp).width(1.dp),
+                        color = Color(0x44FFFFFF)
+                    )
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("38", fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp, color = Color.White)
-                        Text("Events", fontSize = 11.sp, color = Color(0xCCFFFFFF))
+                        Text(
+                            "38",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.White
+                        )
+                        Text(
+                            "Events",
+                            fontSize = 11.sp,
+                            color = Color(0xCCFFFFFF)
+                        )
                     }
-                    Divider(modifier = Modifier.height(32.dp).width(1.dp),
-                        color = Color(0x44FFFFFF))
+                    Divider(
+                        modifier = Modifier.height(32.dp).width(1.dp),
+                        color = Color(0x44FFFFFF)
+                    )
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("94", fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp, color = Color.White)
-                        Text("Jobs", fontSize = 11.sp, color = Color(0xCCFFFFFF))
+                        Text(
+                            "94",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.White
+                        )
+                        Text(
+                            "Jobs",
+                            fontSize = 11.sp,
+                            color = Color(0xCCFFFFFF)
+                        )
                     }
                 }
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        // Preview post cards
+        // Preview cards
         Row(
             modifier = Modifier
                 .horizontalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            PostCard(
-                title = "Community Clean-Up",
-                subtitle = "📅 Saturday • 8AM • Westlands Park",
-                tag = "EVENT",
-                image = R.drawable.community,
-                onClick = {}
-            )
-            PostCard(
-                title = "Job Opportunities",
-                subtitle = "💼 Part-time • Students welcome",
-                tag = "JOBS",
-                image = R.drawable.community,
-                onClick = {}
-            )
+            listOf(
+                Event(
+                    id = "1",
+                    title = "Community Clean-Up",
+                    description = "Join us to clean Westlands Park",
+                    date = "Saturday, May 10 2026",
+                    location = "Westlands Park",
+                    category = "EVENT",
+                    organizer = "CommonLink Team"
+                ),
+                Event(
+                    id = "2",
+                    title = "Job Fair 2026",
+                    description = "Meet top employers in your area",
+                    date = "Sunday, May 11 2026",
+                    location = "KICC, Nairobi",
+                    category = "JOBS",
+                    organizer = "Nairobi Chamber"
+                )
+            ).forEach { event ->
+                HomeEventCard(event = event, onClick = {})
+            }
         }
     }
 }

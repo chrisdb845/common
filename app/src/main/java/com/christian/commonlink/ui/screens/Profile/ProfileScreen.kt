@@ -9,12 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,15 +18,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
 import com.christian.commonlink.navigation.ROUT_EDIT_PROFILE
 import com.christian.commonlink.navigation.ROUT_LOGIN
 import com.christian.commonlink.ui.screens.auth.AuthViewModel
@@ -41,11 +35,12 @@ private val DeepIndigo   = Color(0xFF1A1040)
 private val RoyalPurple  = Color(0xFF6B3FA0)
 private val SoftViolet   = Color(0xFF9B6FD4)
 private val AccentGold   = Color(0xFFFFD166)
-private val CardWhite    = Color(0xFFFFFFFF)
+private val CardWhite    = Color.White
 private val SubtitleGray = Color(0xFF888888)
 private val BgColor      = Color(0xFFF5F3FB)
+private val LightPurple  = Color(0xFFF1EBFF)
 
-// ── Reusable profile info row ────────────────────────────────────
+// ── Profile Info Row ─────────────────────────────────────────────
 @Composable
 fun ProfileInfoRow(
     icon: ImageVector,
@@ -55,33 +50,30 @@ fun ProfileInfoRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp),
+            .padding(vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(38.dp)
+                .size(46.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFEDE7F6)),
+                .background(LightPurple),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 icon,
                 contentDescription = label,
                 tint = RoyalPurple,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
         Spacer(modifier = Modifier.width(14.dp))
-        Column {
-            Text(
-                text = label,
-                fontSize = 11.sp,
-                color = SubtitleGray
-            )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = label, fontSize = 12.sp, color = SubtitleGray)
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = value,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = DeepIndigo
             )
@@ -89,50 +81,94 @@ fun ProfileInfoRow(
     }
 }
 
-// ── Reusable stat box ────────────────────────────────────────────
+// ── Profile Action Item ──────────────────────────────────────────
 @Composable
-fun ProfileStatBox(value: String, label: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+fun ProfileActionItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    iconColor: Color = RoyalPurple,
+    onClick: () -> Unit
+) {
+    Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFEDE7F6))
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(CardWhite)
+            .clickable { onClick() }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = value,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = RoyalPurple
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(iconColor.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = title, tint = iconColor)
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                color = DeepIndigo
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(text = subtitle, fontSize = 12.sp, color = SubtitleGray)
+        }
+        Icon(
+            Icons.Default.KeyboardArrowRight,
+            contentDescription = null,
+            tint = SubtitleGray
         )
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = SubtitleGray
-        )
+    }
+}
+
+// ── Profile Stat Card ────────────────────────────────────────────
+@Composable
+fun ProfileStatCard(title: String, value: String) {
+    Card(
+        modifier = Modifier.width(110.dp),
+        colors = CardDefaults.cardColors(containerColor = CardWhite),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = value,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = RoyalPurple
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = title, fontSize = 12.sp, color = SubtitleGray)
+        }
     }
 }
 
 // ── Main Profile Screen ──────────────────────────────────────────
 @Composable
-fun ProfileScreen(navController: NavController) {
-
-    // ✅ Firebase user data
+fun ProfileScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel = viewModel()
+) {
     val auth        = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
-    val userEmail   = currentUser?.email ?: "No email found"
-    val userName    = currentUser?.displayName?.ifBlank { null }
-        ?: userEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
+    val userEmail   = currentUser?.email ?: "No Email"
+    val userName    = currentUser?.displayName
+        ?: userEmail.substringBefore("@")
+            .replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase() else it.toString()
+            }
 
-    // ✅ ViewModels
-    val authViewModel:    AuthViewModel    = viewModel()
-    val profileViewModel: ProfileViewModel = viewModel()
-
-    // ✅ Observe profile image from Firebase
-    val profileImageUrl by profileViewModel.profileImageUrl.collectAsState()
-
-    var notificationsEnabled by remember { mutableStateOf(true) }
-
+    // ✅ Wrap everything in ONE Column
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -140,18 +176,23 @@ fun ProfileScreen(navController: NavController) {
             .verticalScroll(rememberScrollState())
     ) {
 
-        // ── GRADIENT HEADER ──────────────────────────────────────
+        // ── HEADER ───────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
                     Brush.verticalGradient(listOf(DeepIndigo, RoyalPurple))
                 )
-                .padding(start = 8.dp, top = 48.dp, end = 20.dp, bottom = 48.dp)
+                .padding(
+                    start   = 20.dp,
+                    end     = 20.dp,
+                    top     = 50.dp,
+                    bottom  = 30.dp
+                )
         ) {
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                // Back + Edit row
+                // Top bar
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -160,284 +201,228 @@ fun ProfileScreen(navController: NavController) {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = null,
                             tint = Color.White
                         )
                     }
-
-                    // ✅ Edit Profile button navigates to EditProfileScreen
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(Color(0x33FFFFFF))
-                            .clickable {
-                                navController.navigate(ROUT_EDIT_PROFILE)
-                            }
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.Edit,
-                                contentDescription = "Edit",
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "Edit Profile",
-                                fontSize = 13.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
+                    TextButton(onClick = { navController.navigate(ROUT_EDIT_PROFILE) }) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = AccentGold
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Edit",
+                            color = AccentGold,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Avatar
+                Box(
+                    modifier = Modifier
+                        .size(105.dp)
+                        .clip(CircleShape)
+                        .background(SoftViolet)
+                        .border(4.dp, AccentGold, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = userName.takeIf { it.isNotBlank() }
+                            ?.first()?.uppercase() ?: "?",
+                        color = Color.White,
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = userName,
+                    fontSize = 24.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = userEmail,
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.75f)
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Avatar + name
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Surface(
+                    color = AccentGold.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(50)
                 ) {
-                    // ✅ Avatar — shows real photo or first letter
-                    Box(
-                        modifier = Modifier
-                            .size(90.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Brush.radialGradient(
-                                    colors = listOf(SoftViolet, DeepIndigo)
-                                )
-                            )
-                            .border(3.dp, AccentGold, CircleShape)
-                            .clickable {
-                                navController.navigate(ROUT_EDIT_PROFILE)
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (profileImageUrl != null) {
-                            // ✅ Show real profile image from Firebase Storage
-                            AsyncImage(
-                                model = profileImageUrl,
-                                contentDescription = "Profile Photo",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(90.dp)
-                                    .clip(CircleShape)
-                            )
-                        } else {
-                            // ✅ Show first letter as fallback
-                            Text(
-                                text = userName.first().uppercase(),
-                                fontSize = 36.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // ✅ Real name from Firebase
                     Text(
-                        text = userName,
-                        fontSize = 22.sp,
+                        text = "Community Member ✨",
+                        color = AccentGold,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // ✅ Real email from Firebase
-                    Text(
-                        text = userEmail,
-                        fontSize = 13.sp,
-                        color = Color(0xCCFFFFFF)
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Member badge
-                    Box(
-                        modifier = Modifier
-                            .background(AccentGold, shape = RoundedCornerShape(50))
-                            .padding(horizontal = 14.dp, vertical = 5.dp)
-                    ) {
-                        Text(
-                            text = "⭐ Community Member",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = DeepIndigo
+                        modifier = Modifier.padding(
+                            horizontal = 16.dp,
+                            vertical   = 8.dp
                         )
-                    }
+                    )
                 }
             }
         }
 
-        // ── STATS ROW ────────────────────────────────────────────
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // ── STATS ────────────────────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            ProfileStatBox("5", "Events")
-            ProfileStatBox("3", "Jobs")
-            ProfileStatBox("8", "Notices")
+            ProfileStatCard(title = "Posts",       value = "12")
+            ProfileStatCard(title = "Events",      value = "5")
+            ProfileStatCard(title = "Connections", value = "248")
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // ── PROFILE INFO CARD ────────────────────────────────────
+        // ── ACCOUNT INFORMATION ──────────────────────────────────
+        Text(
+            text = "Account Information",
+            modifier = Modifier.padding(horizontal = 20.dp),
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = DeepIndigo
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         Card(
-            shape = RoundedCornerShape(20.dp),
-            elevation = CardDefaults.cardElevation(4.dp),
-            colors = CardDefaults.cardColors(containerColor = CardWhite),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = CardWhite)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Account Information",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = DeepIndigo
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color(0xFFEEEEEE))
-                Spacer(modifier = Modifier.height(8.dp))
-
                 ProfileInfoRow(
-                    icon = Icons.Default.Person,
+                    icon  = Icons.Default.Person,
                     label = "Username",
                     value = userName
                 )
-                Divider(color = Color(0xFFEEEEEE))
-
+                HorizontalDivider()
                 ProfileInfoRow(
-                    icon = Icons.Default.Email,
+                    icon  = Icons.Default.Email,
                     label = "Email Address",
                     value = userEmail
                 )
-                Divider(color = Color(0xFFEEEEEE))
-
+                HorizontalDivider()
                 ProfileInfoRow(
-                    icon = Icons.Default.DateRange,
-                    label = "Member Since",
-                    value = "May 2026"
+                    icon  = Icons.Default.VerifiedUser,
+                    label = "Account Status",
+                    value = "Verified Account"
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(26.dp))
 
-        // ── SETTINGS CARD ────────────────────────────────────────
-        Card(
-            shape = RoundedCornerShape(20.dp),
-            elevation = CardDefaults.cardElevation(4.dp),
-            colors = CardDefaults.cardColors(containerColor = CardWhite),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+        // ── SETTINGS ─────────────────────────────────────────────
+        Text(
+            text = "Settings & More",
+            modifier = Modifier.padding(horizontal = 20.dp),
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = DeepIndigo
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Settings",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = DeepIndigo
-                )
+            ProfileActionItem(
+                icon     = Icons.Default.Edit,
+                title    = "Edit Profile",
+                subtitle = "Update your personal information"
+            ) { navController.navigate(ROUT_EDIT_PROFILE) }
 
-                Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color(0xFFEEEEEE))
-                Spacer(modifier = Modifier.height(8.dp))
+            ProfileActionItem(
+                icon      = Icons.Default.Notifications,
+                title     = "Notifications",
+                subtitle  = "Manage your notification settings",
+                iconColor = Color(0xFFFF9800)
+            ) {}
 
-                // Notifications toggle
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFEDE7F6)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.Notifications,
-                                contentDescription = "Notifications",
-                                tint = RoyalPurple,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Column {
-                            Text(
-                                text = "Push Notifications",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = DeepIndigo
-                            )
-                            Text(
-                                text = "Get notified about new posts",
-                                fontSize = 12.sp,
-                                color = SubtitleGray
-                            )
-                        }
-                    }
-                    Switch(
-                        checked = notificationsEnabled,
-                        onCheckedChange = { notificationsEnabled = it },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = RoyalPurple
-                        )
-                    )
-                }
-            }
+            ProfileActionItem(
+                icon      = Icons.Default.Security,
+                title     = "Privacy & Security",
+                subtitle  = "Keep your account secure",
+                iconColor = Color(0xFF2196F3)
+            ) {}
+
+            ProfileActionItem(
+                icon      = Icons.Default.Help,
+                title     = "Help & Support",
+                subtitle  = "Get help with the app",
+                iconColor = Color(0xFF4CAF50)
+            ) {}
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(30.dp))
 
         // ── LOGOUT BUTTON ────────────────────────────────────────
+        // ✅ Fixed — properly signs out then navigates
         Button(
             onClick = {
-                authViewModel.logout {
-                    navController.navigate(ROUT_LOGIN) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                FirebaseAuth.getInstance().signOut()
+                navController.navigate(ROUT_LOGIN) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(54.dp)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 20.dp)
+                .height(58.dp),
+            shape  = RoundedCornerShape(18.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFFEBEE)
-            ),
-            shape = RoundedCornerShape(14.dp)
-        ) {
-            Text(
-                text = "🚪 Log Out",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFB71C1C)
+                containerColor = Color(0xFFB71C1C)
             )
+        ) {
+            Icon(
+                Icons.Default.Logout,
+                contentDescription = null,
+                tint = Color.White
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Logout", color = Color.White, fontWeight = FontWeight.Bold)
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-    }
+        Spacer(modifier = Modifier.height(30.dp))
+
+        // ── APP VERSION ──────────────────────────────────────────
+        Text(
+            text      = "CommonLink v1.0.0",
+            modifier  = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            fontSize  = 12.sp,
+            color     = SubtitleGray
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+    } // ✅ Single closing brace for the main Column
 }
 
-// ── Preview ──────────────────────────────────────────────────────
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
@@ -445,7 +430,6 @@ fun ProfileScreenPreview() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F3FB))
-            .verticalScroll(rememberScrollState())
     ) {
         Box(
             modifier = Modifier
@@ -461,7 +445,7 @@ fun ProfileScreenPreview() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 Box(
                     modifier = Modifier
                         .size(90.dp)
@@ -490,90 +474,8 @@ fun ProfileScreenPreview() {
                     fontSize = 13.sp,
                     color = Color(0xCCFFFFFF)
                 )
-                Spacer(modifier = Modifier.height(10.dp))
-                Box(
-                    modifier = Modifier
-                        .background(
-                            Color(0xFFFFD166),
-                            shape = RoundedCornerShape(50)
-                        )
-                        .padding(horizontal = 14.dp, vertical = 5.dp)
-                ) {
-                    Text(
-                        "⭐ Community Member",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1040)
-                    )
-                }
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            ProfileStatBox("5", "Events")
-            ProfileStatBox("3", "Jobs")
-            ProfileStatBox("8", "Notices")
-        }
-        Card(
-            shape = RoundedCornerShape(20.dp),
-            elevation = CardDefaults.cardElevation(4.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    "Account Information",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = Color(0xFF1A1040)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color(0xFFEEEEEE))
-                ProfileInfoRow(
-                    icon = Icons.Default.Person,
-                    label = "Username",
-                    value = "Christian Mwangi"
-                )
-                Divider(color = Color(0xFFEEEEEE))
-                ProfileInfoRow(
-                    icon = Icons.Default.Email,
-                    label = "Email Address",
-                    value = "christian@email.com"
-                )
-                Divider(color = Color(0xFFEEEEEE))
-                ProfileInfoRow(
-                    icon = Icons.Default.DateRange,
-                    label = "Member Since",
-                    value = "May 2026"
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(
-            onClick = {},
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp)
-                .padding(horizontal = 20.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFFEBEE)
-            ),
-            shape = RoundedCornerShape(14.dp)
-        ) {
-            Text(
-                "🚪 Log Out",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFB71C1C)
-            )
-        }
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
